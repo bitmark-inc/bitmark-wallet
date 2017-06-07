@@ -33,10 +33,15 @@ type CoinAccount struct {
 	identifier string
 }
 
-func calcTxFee(coins tx.UTXOs, sends ...*tx.Send) (uint64, error) {
-	ntx, used, err := tx.NewP2PKunsign(0, coins, 0, sends...)
+func calcTxFee(coins tx.UTXOs, opReturn *tx.TxOut, sends ...*tx.Send) (uint64, error) {
+	// Set the maximum fee for calculation
+	ntx, used, err := tx.NewP2PKunsign(0.1*tx.Unit, coins, 0, sends...)
 	if err != nil {
 		return 0, err
+	}
+
+	if opReturn != nil {
+		ntx.TxOut = append(ntx.TxOut, opReturn)
 	}
 
 	if err = tx.FillP2PKsign(ntx, used); err != nil {
@@ -48,7 +53,24 @@ func calcTxFee(coins tx.UTXOs, sends ...*tx.Send) (uint64, error) {
 		return 0, err
 	}
 	return uint64(len(rawTx)) * TxFeePerKb / 1000, nil
+}
 
+func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends ...*tx.Send) (*tx.Tx, tx.UTXOs, error) {
+	var opReturn *tx.TxOut
+	if customData != nil {
+		opReturn = tx.CustomTx(customData)
+	}
+	fee, err := calcTxFee(coins, opReturn, sends...)
+	if err != nil {
+		return nil, nil, err
+	}
+	fmt.Println("Fee: ", fee)
+	ntx, used, err := tx.NewP2PKunsign(fee, coins, 0, sends...)
+	if err != nil {
+		return nil, nil, err
+	}
+	ntx.TxOut = append(ntx.TxOut, opReturn)
+	return ntx, used, nil
 }
 
 // String returns the identifier of an account.
@@ -264,7 +286,7 @@ func (c CoinAccount) GenCoins(amount uint64) (tx.UTXOs, uint64, error) {
 	return nil, total, ErrNotEnoughCoin
 }
 
-func (c CoinAccount) Send(address string, amount uint64) (string, error) {
+func (c CoinAccount) Send(address string, amount uint64, customData []byte) (string, error) {
 	// Generate the change address in advance.
 	changeAddr, err := c.NewChangeAddr()
 	if err != nil {
@@ -289,18 +311,17 @@ func (c CoinAccount) Send(address string, amount uint64) (string, error) {
 		return "", err
 	}
 
-	// calculate the transaction fee for this transaction
-	fee, err := calcTxFee(coins, sends...)
-	if err != nil {
-		return "", err
-	}
-	fmt.Println("fee:", fee)
-
-	ntx, used, err := tx.NewP2PKunsign(fee, coins, 0, sends...)
+	ntx, used, err := c.prepareTx(coins, customData, sends...)
 	if err != nil {
 		return "", err
 	}
 	err = tx.FillP2PKsign(ntx, used)
+	if err != nil {
+		return "", err
+	}
 	b, err := ntx.Pack()
+	if err != nil {
+		return "", err
+	}
 	return c.D.Send(hex.EncodeToString(b))
 }

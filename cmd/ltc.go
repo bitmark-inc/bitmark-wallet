@@ -6,6 +6,7 @@ import (
 	"path"
 	"strconv"
 
+	"encoding/hex"
 	"github.com/bitmark-inc/bitmark-wallet"
 	"github.com/bitmark-inc/bitmark-wallet/discover"
 	"github.com/spf13/cobra"
@@ -103,7 +104,9 @@ func init() {
 		},
 	})
 
-	ltcCmd.AddCommand(&cobra.Command{
+	var isHexData bool
+	var data string
+	sendCmd := &cobra.Command{
 		Use:   "pay [address] [amount]",
 		Short: "pay coin to an address",
 		Long:  `pay coin to an address`,
@@ -119,9 +122,23 @@ func init() {
 				returnIfErr(fmt.Errorf("invalid amount to send"))
 			}
 
-			rawTx, err := coinAccount.Send(address, amount)
+			var customData []byte
+			if data != "" {
+				if isHexData {
+					customData, err = hex.DecodeString(data)
+					returnIfErr(err)
+				} else {
+					customData = []byte(data)
+				}
+			}
+
+			rawTx, err := coinAccount.Send(address, amount, customData)
 			returnIfErr(err)
 			fmt.Println("Raw Transaction: ", rawTx)
 		},
-	})
+	}
+	sendCmd.Flags().BoolVarP(&isHexData, "hex-data", "H", false, "set the OP_RETURN data to be hex format")
+	sendCmd.Flags().StringVarP(&data, "data", "D", "", "some custom data sent to OP_RETURN")
+
+	ltcCmd.AddCommand(sendCmd)
 }
