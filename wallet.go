@@ -302,5 +302,5 @@ func (c CoinAccount) Send(address string, amount uint64) (string, error) {
 	}
 	err = tx.FillP2PKsign(ntx, used)
 	b, err := ntx.Pack()
-	return hex.EncodeToString(b), err
+	return c.D.Send(hex.EncodeToString(b))
 }

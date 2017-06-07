@@ -13,6 +13,7 @@ var (
 
 type UTXODiscover interface {
 	GetAddrUnspent(string) ([]*tx.UTXO, error)
+	Send(string) (string, error)
 }
 
 func reverseByte(b []byte) []byte {

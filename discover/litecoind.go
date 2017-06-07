@@ -141,6 +141,26 @@ func (l LitecoindLTCDiscover) isAddressUsed(address string) (bool, error) {
 	return false, nil
 }
 
+func (l LitecoindLTCDiscover) Send(rawTx string) (string, error) {
+	p := RPCParam{
+		Method: "sendrawtransaction",
+		Params: []interface{}{rawTx},
+	}
+
+	v, err := l.jsonRPC(p)
+	if err != nil {
+		return "", err
+	}
+
+	var txId string
+	err = json.Unmarshal(v.Result, &txId)
+	if err != nil {
+		return "", err
+	}
+
+	return txId, nil
+}
+
 func (l LitecoindLTCDiscover) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
 	err := l.importAddress(addr)
 	if err != nil {
