@@ -71,6 +71,10 @@ func (l LitecoindLTCDiscover) jsonRPC(p RPCParam) (*RPCResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if v.Error != nil {
+		return nil, fmt.Errorf("JSONRPC Error: %s (code: %d)", v.Error.Message, v.Error.Code)
+	}
 	return v, nil
 }
 
