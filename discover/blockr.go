@@ -65,12 +65,13 @@ func (b BlockrBtcDiscover) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
 	if len(v1.Data.Unspent) != 0 {
 		utxos := make([]*tx.UTXO, 0, len(v1.Data.Unspent))
 		for _, u := range v1.Data.Unspent {
-			hashByte, err := hex.DecodeString(u.Hash)
+			hash, err := hex.DecodeString(u.Hash)
 			if err != nil {
 				return nil, err
 			}
+
 			utxo := tx.UTXO{
-				TxHash:  hashByte,
+				TxHash:  reverseByte(hash),
 				TxIndex: u.Index,
 				Value:   uint64(u.Value * tx.Unit),
 			}

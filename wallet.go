@@ -3,19 +3,22 @@ package wallet
 import (
 	"encoding/hex"
 	"fmt"
-	"log"
 
 	"github.com/bitgoin/address"
 	"github.com/bitgoin/tx"
-	"github.com/bitmark-inc/bitmark-wallet2/discover"
+	"github.com/bitmark-inc/bitmark-wallet/discover"
 )
 
 // Follow the rule of account discovery in BIP44
 // https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#account-discovery
-const AddressGap = 20
+const (
+	TxFeePerKb = 100000
+	AddressGap = 20
+)
 
 var (
-	ErrNotEnoughCoin = fmt.Errorf("not enough of coins in the wallet")
+	ErrNotEnoughCoin   = fmt.Errorf("not enough of coins in the wallet")
+	ErrNilAccountStore = fmt.Errorf("no account store is set")
 )
 
 // CoinAccount is the root struct for manipulate coins.
@@ -30,18 +33,38 @@ type CoinAccount struct {
 	identifier string
 }
 
+func calcTxFee(coins tx.UTXOs, sends ...*tx.Send) (uint64, error) {
+	ntx, used, err := tx.NewP2PKunsign(0, coins, 0, sends...)
+	if err != nil {
+		return 0, err
+	}
+
+	if err = tx.FillP2PKsign(ntx, used); err != nil {
+		return 0, err
+	}
+
+	rawTx, err := ntx.Pack()
+	if err != nil {
+		return 0, err
+	}
+	return uint64(len(rawTx)) * TxFeePerKb / 1000, nil
+
+}
+
 // String returns the identifier of an account.
 func (c CoinAccount) String() string {
 	return c.identifier
 }
 
 type Wallet struct {
-	seed []byte
+	seed     []byte
+	dataFile string
 }
 
-func New(seed []byte) *Wallet {
+func New(seed []byte, dataFile string) *Wallet {
 	return &Wallet{
-		seed: seed,
+		seed:     seed,
+		dataFile: dataFile,
 	}
 }
 
@@ -76,7 +99,7 @@ func (w Wallet) CoinAccount(ct CoinType, test Test, account uint32) (*CoinAccoun
 		return nil, err
 	}
 
-	store, err := NewBoltAccountStore("wallet.dat", pubkey.Address())
+	store, err := NewBoltAccountStore(w.dataFile, pubkey.Address())
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +112,10 @@ func (w Wallet) CoinAccount(ct CoinType, test Test, account uint32) (*CoinAccoun
 		params:     coinParams,
 		identifier: pubkey.Address(),
 	}, nil
+}
+
+func (c *CoinAccount) SetDiscover(d discover.UTXODiscover) {
+	c.D = d
 }
 
 func (c CoinAccount) addressKey(i uint32, change bool) (*address.PrivateKey, error) {
@@ -129,39 +156,47 @@ func (c CoinAccount) Address(i uint32, change bool) (string, error) {
 
 func (c CoinAccount) Discover() error {
 	// m / 44' / coin' / account' / external
-	externalKey, err := c.Key.Child(0)
-	if err != nil {
-		return err
-	}
-
-	var i uint32
-	for i < AddressGap {
-		k, err := externalKey.Child(i)
+	var lastIndex uint64
+	for i := uint32(0); i < 2; i++ {
+		changeKey, err := c.Key.Child(i)
 		if err != nil {
 			return err
 		}
-		p, err := k.PubKey()
-		if err != nil {
-			return err
-		}
-
-		addr := p.Address()
-		utxos, err := c.D.GetAddrUnspent(addr)
-		if err != nil {
-			if err == discover.ErrNoTxForAddr {
-				i += 1
-			} else {
+		var gap, j uint32
+		for gap < AddressGap {
+			k, err := changeKey.Child(j)
+			if err != nil {
 				return err
 			}
-		} else {
-			i = 0
-		}
-		err = c.store.SetUTXO(addr, utxos)
-		if err != nil {
-			return err
+
+			p, err := k.PubKey()
+			if err != nil {
+				return err
+			}
+
+			addr := p.Address()
+			utxos, err := c.D.GetAddrUnspent(addr)
+
+			switch err {
+			case discover.ErrNoTxForAddr:
+				gap += 1
+			case nil, discover.ErrNoUnspentTx:
+				gap = 0
+				if i == 0 { // that means external address
+					lastIndex += 1
+				}
+			default:
+				return err
+			}
+
+			err = c.store.SetUTXO(addr, utxos)
+			if err != nil {
+				return err
+			}
+			j += 1
 		}
 	}
-	return nil
+	return c.store.SetLastIndex(lastIndex)
 }
 
 func (c CoinAccount) GetBalance() (uint64, error) {
@@ -218,21 +253,20 @@ func (c CoinAccount) GenCoins(amount uint64) (tx.UTXOs, uint64, error) {
 		}
 	}
 
-	return coins, total, ErrNotEnoughCoin
+	return nil, total, ErrNotEnoughCoin
 }
 
-func (c CoinAccount) Send(address string, amount uint64) error {
-
+func (c CoinAccount) Send(address string, amount uint64) (string, error) {
+	// Generate the change address in advance.
 	changeAddr, err := c.NewChangeAddr()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	// Generate the change address in advance.
-	send := []*tx.Send{
+	sends := []*tx.Send{
 		{
 			Addr:   address,
-			Amount: amount * tx.Unit,
+			Amount: amount,
 		},
 		{
 			Addr:   changeAddr,
@@ -244,17 +278,21 @@ func (c CoinAccount) Send(address string, amount uint64) error {
 	// sending amount
 	coins, _, err := c.GenCoins(amount)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	// TODO: calculate the transaction fee.
-	ntx, used, err := tx.NewP2PKunsign(30000, coins, 0, send...)
+	// calculate the transaction fee for this transaction
+	fee, err := calcTxFee(coins, sends...)
 	if err != nil {
+		return "", err
 	}
+	fmt.Println("fee:", fee)
 
+	ntx, used, err := tx.NewP2PKunsign(fee, coins, 0, sends...)
+	if err != nil {
+		return "", err
+	}
 	err = tx.FillP2PKsign(ntx, used)
-	log.Println(hex.EncodeToString(ntx.TxIn[0].Script))
 	b, err := ntx.Pack()
-	log.Println("raw tx:", hex.EncodeToString(b))
-	return err
+	return hex.EncodeToString(b), err
 }

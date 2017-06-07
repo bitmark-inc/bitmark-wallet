@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	ErrAccountNotExisted = fmt.Errorf("account is not existed")
+	ErrAccountBucketNotExisted = fmt.Errorf("account bucket is not existed")
+	ErrUTXOBucketNotExisted    = fmt.Errorf("utxo bucket is not existed")
 )
 
 func packUTXOs(utxos tx.UTXOs) []byte {
@@ -59,6 +60,12 @@ type AccountStore interface {
 	Close()
 }
 
+// BoltAccountStore is an account store using boltdb.
+// The wallet data is organized as follow:
+// + bucket (pubkey of coin_account)
+//   + bucket ("utxo")
+//     - address : txs
+//   - lastIndex : varint
 type BoltAccountStore struct {
 	account string
 	db      *bolt.DB
@@ -94,9 +101,14 @@ func (b BoltAccountStore) GetAllUTXO() (map[string]tx.UTXOs, error) {
 	if err := b.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(b.account))
 		if bucket == nil {
-			return ErrAccountNotExisted
+			return ErrAccountBucketNotExisted
 		}
-		err := bucket.ForEach(func(address, tx []byte) error {
+		utxoBkt := bucket.Bucket([]byte("utxo"))
+		if utxoBkt == nil {
+			return ErrUTXOBucketNotExisted
+		}
+
+		err := utxoBkt.ForEach(func(address, tx []byte) error {
 			txs := unpackUTXOs(tx)
 			utxos[string(address)] = txs
 			return nil
@@ -113,9 +125,14 @@ func (b BoltAccountStore) GetUTXO(address string) (tx.UTXOs, error) {
 	if err := b.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(b.account))
 		if bucket == nil {
-			return ErrAccountNotExisted
+			return ErrAccountBucketNotExisted
 		}
-		utxos = unpackUTXOs(bucket.Get([]byte(address)))
+		utxoBkt := bucket.Bucket([]byte("utxo"))
+		if utxoBkt == nil {
+			return ErrUTXOBucketNotExisted
+		}
+
+		utxos = unpackUTXOs(utxoBkt.Get([]byte(address)))
 		return nil
 	}); err != nil {
 		return nil, err
@@ -127,9 +144,18 @@ func (b BoltAccountStore) SetUTXO(address string, utxos tx.UTXOs) error {
 	b.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(b.account))
 		if bucket == nil {
-			return ErrAccountNotExisted
+			return ErrAccountBucketNotExisted
 		}
-		return bucket.Put([]byte(address), packUTXOs(utxos))
+		utxoBkt := bucket.Bucket([]byte("utxo"))
+		if utxoBkt == nil {
+			return ErrUTXOBucketNotExisted
+		}
+
+		b := packUTXOs(utxos)
+		if len(b) == 0 {
+			return utxoBkt.Delete([]byte(address))
+		}
+		return utxoBkt.Put([]byte(address), b)
 	})
 	return nil
 }
@@ -147,7 +173,13 @@ func NewBoltAccountStore(filename, account string) (*BoltAccountStore, error) {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.CreateBucketIfNotExists([]byte(account))
+	// root bucket of an account
+	root, err := tx.CreateBucketIfNotExists([]byte(account))
+	if err != nil {
+		return nil, err
+	}
+	// utxo bucket of an account
+	_, err = root.CreateBucketIfNotExists([]byte("utxo"))
 	if err != nil {
 		return nil, err
 	}
