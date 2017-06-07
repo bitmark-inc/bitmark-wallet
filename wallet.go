@@ -144,6 +144,14 @@ func (c CoinAccount) NewChangeAddr() (string, error) {
 	return c.Address(uint32(lastIndex), true)
 }
 
+func (c CoinAccount) NewExternalAddr() (string, error) {
+	lastIndex, err := c.store.GetLastIndex()
+	if err != nil {
+		return "", err
+	}
+	return c.Address(uint32(lastIndex), false)
+}
+
 // Address returns a coin address
 func (c CoinAccount) Address(i uint32, change bool) (string, error) {
 	p, err := c.addressKey(i, change)
