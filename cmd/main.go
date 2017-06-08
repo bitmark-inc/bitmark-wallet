@@ -14,7 +14,6 @@ import (
 
 	"github.com/NebulousLabs/entropy-mnemonics"
 	"github.com/bitmark-inc/bitmark-wallet"
-	"github.com/bitmark-inc/bitmark-wallet/agent"
 	"github.com/boltdb/bolt"
 	// "github.com/hashicorp/hcl"
 
@@ -214,12 +213,8 @@ func main() {
 		},
 	})
 
-	a := agent.NewLitecoindAgent(
-		"http://localhost:17001/", "btcuser1",
-		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
-	)
-	rootCmd.AddCommand(NewCoinCmd("btc", "Bitcoin wallet", "Bitcoin wallet", wallet.BTC, a))
-	rootCmd.AddCommand(NewCoinCmd("ltc", "Litecoin wallet", "Litecoin wallet", wallet.LTC, a))
+	rootCmd.AddCommand(NewCoinCmd("btc", "Bitcoin wallet", "Bitcoin wallet", wallet.BTC))
+	rootCmd.AddCommand(NewCoinCmd("ltc", "Litecoin wallet", "Litecoin wallet", wallet.LTC))
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

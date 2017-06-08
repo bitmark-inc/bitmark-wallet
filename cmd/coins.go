@@ -19,7 +19,9 @@ var coinAccount *wallet.CoinAccount
 
 var test bool
 
-func NewCoinCmd(use, short, long string, ct wallet.CoinType, a agent.CoinAgent) *cobra.Command {
+func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
+	var agentType, agentNode, agentUser, agentPass string
+
 	var cmd = &cobra.Command{
 		Use:   use,
 		Short: short,
@@ -62,12 +64,26 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType, a agent.CoinAgent) 
 			coinAccount, err = w.CoinAccount(ct, wallet.Test(test), 0)
 			returnIfErr(err)
 
+			var a agent.CoinAgent
+			switch agentType {
+			case "blockr":
+				// a = agent.NewBlockrAgent(agentNode)
+			case "daemon":
+				fallthrough
+			default:
+				url := fmt.Sprintf("http://%s/", agentNode)
+				a = agent.NewLitecoindAgent(url, agentUser, agentPass)
+			}
 			coinAccount.SetAgent(a)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},
 	}
+	cmd.PersistentFlags().StringVarP(&agentType, "agent-type", "A", "daemon", "agent type of a wallet")
+	cmd.PersistentFlags().StringVarP(&agentNode, "agent-node", "N", "", "node of an agent")
+	cmd.PersistentFlags().StringVarP(&agentUser, "agent-user", "U", "", "user of an agent")
+	cmd.PersistentFlags().StringVarP(&agentPass, "agent-pass", "P", "", "password of an agent")
 
 	cmd.PersistentFlags().BoolVarP(&test, "testnet", "t", false, "use the wallet in testnet")
 	cmd.AddCommand(&cobra.Command{
