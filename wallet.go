@@ -69,7 +69,11 @@ func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends ...*tx.S
 	if err != nil {
 		return nil, nil, err
 	}
-	ntx.TxOut = append(ntx.TxOut, opReturn)
+
+	if opReturn != nil {
+		ntx.TxOut = append(ntx.TxOut, opReturn)
+	}
+
 	return ntx, used, nil
 }
 
