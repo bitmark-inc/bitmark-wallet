@@ -218,6 +218,7 @@ func main() {
 		},
 	})
 
+	rootCmd.AddCommand(btcCmd)
 	rootCmd.AddCommand(ltcCmd)
 
 	if err := rootCmd.Execute(); err != nil {
