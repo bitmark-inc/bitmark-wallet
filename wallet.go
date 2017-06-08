@@ -6,7 +6,7 @@ import (
 
 	"github.com/bitgoin/address"
 	"github.com/bitgoin/tx"
-	"github.com/bitmark-inc/bitmark-wallet/discover"
+	"github.com/bitmark-inc/bitmark-wallet/agent"
 )
 
 // Follow the rule of account discovery in BIP44
@@ -27,7 +27,7 @@ type CoinAccount struct {
 	Test       Test
 	Key        *address.ExtendedKey
 	params     *address.Params
-	D          discover.UTXODiscover
+	agent      agent.CoinAgent
 	store      AccountStore
 	index      uint32
 	identifier string
@@ -140,8 +140,8 @@ func (w Wallet) CoinAccount(ct CoinType, test Test, account uint32) (*CoinAccoun
 	}, nil
 }
 
-func (c *CoinAccount) SetDiscover(d discover.UTXODiscover) {
-	c.D = d
+func (c *CoinAccount) SetAgent(a agent.CoinAgent) {
+	c.agent = a
 }
 
 func (c CoinAccount) addressKey(i uint32, change bool) (*address.PrivateKey, error) {
@@ -209,12 +209,12 @@ func (c CoinAccount) Discover() error {
 			}
 
 			addr := p.Address()
-			utxos, err := c.D.GetAddrUnspent(addr)
+			utxos, err := c.agent.GetAddrUnspent(addr)
 
 			switch err {
-			case discover.ErrNoTxForAddr:
+			case agent.ErrNoTxForAddr:
 				gap += 1
-			case nil, discover.ErrNoUnspentTx:
+			case nil, agent.ErrNoUnspentTx:
 				gap = 0
 				if i == 0 { // that means external address
 					lastIndex += 1
@@ -326,5 +326,5 @@ func (c CoinAccount) Send(sends []*tx.Send, customData []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return c.D.Send(hex.EncodeToString(b))
+	return c.agent.Send(hex.EncodeToString(b))
 }

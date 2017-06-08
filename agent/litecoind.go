@@ -1,4 +1,4 @@
-package discover
+package agent
 
 import (
 	"fmt"
@@ -41,14 +41,14 @@ type RPCResponse struct {
 	Error  *RPCError       `json:"error"`
 }
 
-type LitecoindLTCDiscover struct {
+type LitecoindAgent struct {
 	apiUrl   string
 	username string
 	password string
 	client   *http.Client
 }
 
-func (l LitecoindLTCDiscover) jsonRPC(p RPCParam) (*RPCResponse, error) {
+func (l LitecoindAgent) jsonRPC(p RPCParam) (*RPCResponse, error) {
 	var buf bytes.Buffer
 	e := json.NewEncoder(&buf)
 	err := e.Encode(p)
@@ -78,7 +78,7 @@ func (l LitecoindLTCDiscover) jsonRPC(p RPCParam) (*RPCResponse, error) {
 	return v, nil
 }
 
-func (l LitecoindLTCDiscover) importAddress(addr string) error {
+func (l LitecoindAgent) importAddress(addr string) error {
 	p := RPCParam{
 		Method: "importaddress",
 		Params: []interface{}{addr},
@@ -87,7 +87,7 @@ func (l LitecoindLTCDiscover) importAddress(addr string) error {
 	return err
 }
 
-func (l LitecoindLTCDiscover) listUnspent(addr string) (tx.UTXOs, error) {
+func (l LitecoindAgent) listUnspent(addr string) (tx.UTXOs, error) {
 	utxos := make([]*tx.UTXO, 0)
 	p := RPCParam{
 		Method: "listunspent",
@@ -120,7 +120,7 @@ func (l LitecoindLTCDiscover) listUnspent(addr string) (tx.UTXOs, error) {
 	return utxos, nil
 }
 
-func (l LitecoindLTCDiscover) isAddressUsed(address string) (bool, error) {
+func (l LitecoindAgent) isAddressUsed(address string) (bool, error) {
 	p := RPCParam{
 		Method: "listreceivedbyaddress",
 		Params: []interface{}{1, false, true},
@@ -145,7 +145,7 @@ func (l LitecoindLTCDiscover) isAddressUsed(address string) (bool, error) {
 	return false, nil
 }
 
-func (l LitecoindLTCDiscover) Send(rawTx string) (string, error) {
+func (l LitecoindAgent) Send(rawTx string) (string, error) {
 	p := RPCParam{
 		Method: "sendrawtransaction",
 		Params: []interface{}{rawTx},
@@ -165,7 +165,7 @@ func (l LitecoindLTCDiscover) Send(rawTx string) (string, error) {
 	return txId, nil
 }
 
-func (l LitecoindLTCDiscover) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
+func (l LitecoindAgent) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
 	err := l.importAddress(addr)
 	if err != nil {
 		return nil, ErrImportAddress
@@ -185,7 +185,7 @@ func (l LitecoindLTCDiscover) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
 	return nil, ErrNoUnspentTx
 }
 
-func NewLitecoindLTCDiscover(apiUrl, username, password string) *LitecoindLTCDiscover {
+func NewLitecoindAgent(apiUrl, username, password string) *LitecoindAgent {
 	var t = &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout: 5 * time.Second,
@@ -197,7 +197,7 @@ func NewLitecoindLTCDiscover(apiUrl, username, password string) *LitecoindLTCDis
 		Transport: t,
 	}
 
-	return &LitecoindLTCDiscover{
+	return &LitecoindAgent{
 		apiUrl:   apiUrl,
 		username: username,
 		password: password,

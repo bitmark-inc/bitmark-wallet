@@ -1,4 +1,4 @@
-package discover
+package agent
 
 import (
 	"fmt"
@@ -43,11 +43,11 @@ type BlockrUnspentResp struct {
 	Data   BlockrUnspentData `json:"data"`
 }
 
-type BlockrBtcDiscover struct {
+type BlockrAgent struct {
 	client *http.Client
 }
 
-func (b BlockrBtcDiscover) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
+func (b BlockrAgent) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
 	unspentQuery := fmt.Sprintf("http://btc.blockr.io/api/v1/address/unspent/%s", addr)
 	r1, err := b.client.Get(unspentQuery)
 	if err != nil {
@@ -101,7 +101,7 @@ func (b BlockrBtcDiscover) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
 	return nil, ErrNoUnspentTx
 }
 
-func NewBlockrBtcDiscover() *BlockrBtcDiscover {
+func NewBlockrAgent() *BlockrAgent {
 	var t = &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout: 5 * time.Second,
@@ -113,7 +113,7 @@ func NewBlockrBtcDiscover() *BlockrBtcDiscover {
 		Transport: t,
 	}
 
-	return &BlockrBtcDiscover{
+	return &BlockrAgent{
 		client: c,
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"encoding/hex"
 	"github.com/bitgoin/tx"
 	"github.com/bitmark-inc/bitmark-wallet"
-	"github.com/bitmark-inc/bitmark-wallet/discover"
+	"github.com/bitmark-inc/bitmark-wallet/agent"
 	"github.com/spf13/cobra"
 )
 
@@ -53,11 +53,11 @@ var ltcCmd = &cobra.Command{
 		returnIfErr(err)
 
 		// TODO: Determine the discover dynamically
-		d := discover.NewLitecoindLTCDiscover(
+		d := agent.NewLitecoindAgent(
 			"http://localhost:17001/", "btcuser1",
 			"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
 		)
-		coinAccount.SetDiscover(d)
+		coinAccount.SetAgent(d)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()

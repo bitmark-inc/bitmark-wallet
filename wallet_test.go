@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/bitgoin/tx"
-	"github.com/bitmark-inc/bitmark-wallet/discover"
+	"github.com/bitmark-inc/bitmark-wallet/agent"
 	"github.com/stretchr/testify/assert"
 	"os"
 )
@@ -31,14 +31,14 @@ func TestWalletNew(t *testing.T) {
 	os.Remove("wallet_test_new.dat")
 }
 
-func TestWalletDiscover(t *testing.T) {
+func TestWalletAgent(t *testing.T) {
 	seed, err := hex.DecodeString(seedHex)
 	assert.NoError(t, err)
 	w := New(seed, "wallet_test_discover.dat")
 
 	ltcAccount, err := w.CoinAccount(LTC, true, 0)
 	assert.NoError(t, err)
-	ltcAccount.SetDiscover(discover.NewLitecoindLTCDiscover(
+	ltcAccount.SetAgent(agent.NewLitecoindAgent(
 		"http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
 	))
@@ -64,7 +64,7 @@ func TestWalletGetUTXO(t *testing.T) {
 
 	ltcAccount, err := w.CoinAccount(LTC, true, 0)
 	assert.NoError(t, err)
-	ltcAccount.SetDiscover(discover.NewLitecoindLTCDiscover(
+	ltcAccount.SetAgent(agent.NewLitecoindAgent(
 		"http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
 	))
@@ -84,7 +84,7 @@ func TestWalletGetBalance(t *testing.T) {
 
 	ltcAccount, err := w.CoinAccount(LTC, true, 0)
 	assert.NoError(t, err)
-	ltcAccount.SetDiscover(discover.NewLitecoindLTCDiscover(
+	ltcAccount.SetAgent(agent.NewLitecoindAgent(
 		"http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
 	))
@@ -108,7 +108,7 @@ func TestWalletGenCoins(t *testing.T) {
 
 	ltcAccount, err := w.CoinAccount(LTC, true, 0)
 	assert.NoError(t, err)
-	ltcAccount.SetDiscover(discover.NewLitecoindLTCDiscover(
+	ltcAccount.SetAgent(agent.NewLitecoindAgent(
 		"http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
 	))
@@ -138,7 +138,7 @@ func TestWalletSend(t *testing.T) {
 
 	ltcAccount, err := w.CoinAccount(LTC, true, 0)
 	assert.NoError(t, err)
-	ltcAccount.SetDiscover(discover.NewLitecoindLTCDiscover(
+	ltcAccount.SetAgent(agent.NewLitecoindAgent(
 		"http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
 	))
@@ -146,7 +146,7 @@ func TestWalletSend(t *testing.T) {
 	err = ltcAccount.Discover()
 	assert.NoError(t, err)
 
-	rawTx, err := ltcAccount.Send("mkeFURLRyDugRRP1kwKRcNBZwkVCPPmYkt", 1.556*tx.Unit)
+	rawTx, err := ltcAccount.Send([]*tx.Send{{"mkeFURLRyDugRRP1kwKRcNBZwkVCPPmYkt", 155600000}}, nil)
 	t.Log(err)
 	t.Log(rawTx)
 }

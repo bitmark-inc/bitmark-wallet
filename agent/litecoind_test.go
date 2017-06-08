@@ -1,4 +1,4 @@
-package discover
+package agent
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestLitecoindGetAddr(t *testing.T) {
-	d := NewLitecoindLTCDiscover("http://localhost:17001/", "btcuser1",
+	d := NewLitecoindAgent("http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw")
 	utxos, err := d.GetAddrUnspent("mvxpcRGnjRpme59CAnLHTxFjwd8ivwWbQb")
 	assert.NoError(t, err)

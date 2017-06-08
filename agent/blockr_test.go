@@ -1,4 +1,4 @@
-package discover
+package agent
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestBlockrGetAddr(t *testing.T) {
-	d := NewBlockrBtcDiscover()
+	d := NewBlockrAgent()
 	utxos, err := d.GetAddrUnspent("198aMn6ZYAczwrE5NvNTUMyJ5qkfy4g3Hi")
 	assert.NoError(t, err)
 	assert.NotNil(t, utxos)

@@ -1,4 +1,4 @@
-package discover
+package agent
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ var (
 	ErrQueryFailure = fmt.Errorf("fail to query from server")
 )
 
-type UTXODiscover interface {
+type CoinAgent interface {
 	GetAddrUnspent(string) ([]*tx.UTXO, error)
 	Send(string) (string, error)
 }
