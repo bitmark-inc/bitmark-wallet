@@ -7,9 +7,11 @@ import (
 	"strconv"
 
 	"encoding/hex"
+	"github.com/bitgoin/tx"
 	"github.com/bitmark-inc/bitmark-wallet"
 	"github.com/bitmark-inc/bitmark-wallet/discover"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 var btcCmd = &cobra.Command{
@@ -131,11 +133,52 @@ func init() {
 			err = coinAccount.Discover()
 			returnIfErr(err)
 
-			rawTx, err := coinAccount.Send(address, amount, customData)
+			rawTx, err := coinAccount.Send([]*tx.Send{{address, amount}}, customData)
 			returnIfErr(err)
 			fmt.Println("Raw Transaction: ", rawTx)
 		},
 	}
 	sendCmd.Flags().StringVarP(&hexData, "hex-data", "H", "", "set hex bytes in the OP_RETURN")
 	btcCmd.AddCommand(sendCmd)
+
+	sendManyCmd := &cobra.Command{
+		Use:   "sendmany [address,amount] [address,amount] ...",
+		Short: "send coins to an address",
+		Long:  `send coins to an address`,
+		Run: func(cmd *cobra.Command, args []string) {
+			var err error
+			if len(args) < 1 {
+				cmd.Help()
+				return
+			}
+
+			sends := []*tx.Send{}
+			for _, s := range args {
+				sendStrings := strings.Split(s, ",")
+				addr := sendStrings[0]
+				amount, err := strconv.ParseUint(sendStrings[1], 10, 64)
+				if err != nil {
+					returnIfErr(fmt.Errorf("invalid amount to send"))
+				}
+
+				send := &tx.Send{Addr: addr, Amount: amount}
+				sends = append(sends, send)
+			}
+
+			var customData []byte
+			if hexData != "" {
+				customData, err = hex.DecodeString(hexData)
+				returnIfErr(err)
+			}
+
+			err = coinAccount.Discover()
+			returnIfErr(err)
+
+			rawTx, err := coinAccount.Send(sends, customData)
+			returnIfErr(err)
+			fmt.Println("Raw Transaction: ", rawTx)
+		},
+	}
+	sendManyCmd.Flags().StringVarP(&hexData, "hex-data", "H", "", "set hex bytes in the OP_RETURN")
+	btcCmd.AddCommand(sendManyCmd)
 }

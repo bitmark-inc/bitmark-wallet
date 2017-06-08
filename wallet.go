@@ -290,27 +290,26 @@ func (c CoinAccount) GenCoins(amount uint64) (tx.UTXOs, uint64, error) {
 	return nil, total, ErrNotEnoughCoin
 }
 
-func (c CoinAccount) Send(address string, amount uint64, customData []byte) (string, error) {
+func (c CoinAccount) Send(sends []*tx.Send, customData []byte) (string, error) {
 	// Generate the change address in advance.
 	changeAddr, err := c.NewChangeAddr()
 	if err != nil {
 		return "", err
 	}
 
-	sends := []*tx.Send{
-		{
-			Addr:   address,
-			Amount: amount,
-		},
-		{
-			Addr:   changeAddr,
-			Amount: 0,
-		},
-	}
+	sends = append(sends, &tx.Send{
+		Addr:   changeAddr,
+		Amount: 0,
+	})
 
+	var amounts uint64
+
+	for _, s := range sends {
+		amounts += s.Amount
+	}
 	// Get UTXO recursively until the amount is greater than
 	// sending amount
-	coins, _, err := c.GenCoins(amount)
+	coins, _, err := c.GenCoins(amounts)
 	if err != nil {
 		return "", err
 	}

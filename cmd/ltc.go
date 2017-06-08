@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"encoding/hex"
+	"github.com/bitgoin/tx"
 	"github.com/bitmark-inc/bitmark-wallet"
 	"github.com/bitmark-inc/bitmark-wallet/discover"
 	"github.com/spf13/cobra"
@@ -130,7 +131,7 @@ func init() {
 				}
 			}
 
-			rawTx, err := coinAccount.Send(address, amount, customData)
+			rawTx, err := coinAccount.Send([]*tx.Send{{address, amount}}, customData)
 			returnIfErr(err)
 			fmt.Println("Raw Transaction: ", rawTx)
 		},
