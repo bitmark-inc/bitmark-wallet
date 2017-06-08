@@ -12,9 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var w *wallet.Wallet
-var coinAccount *wallet.CoinAccount
-
 var ltcCmd = &cobra.Command{
 	Use:   "ltc",
 	Short: "Litecoin wallet",
@@ -51,7 +48,7 @@ var ltcCmd = &cobra.Command{
 
 		w = wallet.New(seed, dataFile)
 
-		coinAccount, err = w.CoinAccount(wallet.LTC, true, 0)
+		coinAccount, err = w.CoinAccount(wallet.LTC, wallet.Test(test), 0)
 		returnIfErr(err)
 
 		// TODO: Determine the discover dynamically
@@ -67,6 +64,7 @@ var ltcCmd = &cobra.Command{
 }
 
 func init() {
+	ltcCmd.PersistentFlags().BoolVarP(&test, "testnet", "t", false, "use the wallet in testnet")
 	ltcCmd.AddCommand(&cobra.Command{
 		Use:   "balance",
 		Short: "get balance of the wallet",

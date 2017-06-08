@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/NebulousLabs/entropy-mnemonics"
+	"github.com/bitmark-inc/bitmark-wallet"
 	"github.com/boltdb/bolt"
 	// "github.com/hashicorp/hcl"
 
@@ -23,6 +24,11 @@ import (
 var (
 	ErrConfigBucketNotFound = fmt.Errorf("config bucket is not found")
 )
+
+var w *wallet.Wallet
+var coinAccount *wallet.CoinAccount
+
+var test bool
 
 func returnIfErr(err error) {
 	if err != nil {
