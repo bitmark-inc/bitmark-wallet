@@ -2,75 +2,75 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"path"
 	"strconv"
+	"strings"
 
-	"encoding/hex"
 	"github.com/bitgoin/tx"
 	"github.com/bitmark-inc/bitmark-wallet"
 	"github.com/bitmark-inc/bitmark-wallet/agent"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
-var btcCmd = &cobra.Command{
-	Use:   "btc",
-	Short: "Bitcoin wallet",
-	Long:  `Bitcoin wallet`,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		// PreRun only for subcommand
-		if len(args) > 0 && args[0] == "help" {
-			return
-		}
-		if cmd.Use == "btc" {
-			return
-		}
+var w *wallet.Wallet
+var coinAccount *wallet.CoinAccount
 
-		datadir, err := cmd.Root().PersistentFlags().GetString("datadir")
-		returnIfErr(err)
+var test bool
 
-		conf, err := cmd.Root().PersistentFlags().GetString("conf")
-		returnIfErr(err)
+func NewCoinCmd(use, short, long string, ct wallet.CoinType, a agent.CoinAgent) *cobra.Command {
+	var cmd = &cobra.Command{
+		Use:   use,
+		Short: short,
+		Long:  long,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			// PreRun only for subcommand
+			if len(args) > 0 && args[0] == "help" {
+				return
+			}
+			if cmd.Use == use {
+				return
+			}
 
-		dataFile := path.Join(datadir, conf)
-		encryptedSeed, err := getConfig(dataFile, []byte("SEED"))
-		returnIfErr(err)
+			datadir, err := cmd.Root().PersistentFlags().GetString("datadir")
+			returnIfErr(err)
 
-		password, err := readPassword("Input wallet password: ", 0)
-		returnIfErr(err)
+			conf, err := cmd.Root().PersistentFlags().GetString("conf")
+			returnIfErr(err)
 
-		passHash := dblSHA256([]byte(password))
-		seed, err := decryptSeed(encryptedSeed, passHash[:])
-		returnIfErr(err)
+			dataFile := path.Join(datadir, conf)
+			encryptedSeed, err := getConfig(dataFile, []byte("SEED"))
+			returnIfErr(err)
 
-		seedHash, err := getConfig(dataFile, []byte("HASH"))
-		returnIfErr(err)
+			password, err := readPassword("Input wallet password: ", 0)
+			returnIfErr(err)
 
-		if bytes.Compare(seedHash, dblSHA256(seed)) != 0 {
-			returnIfErr(fmt.Errorf("incorrect password"))
-		}
+			passHash := dblSHA256([]byte(password))
+			seed, err := decryptSeed(encryptedSeed, passHash[:])
+			returnIfErr(err)
 
-		w = wallet.New(seed, dataFile)
+			seedHash, err := getConfig(dataFile, []byte("HASH"))
+			returnIfErr(err)
 
-		coinAccount, err = w.CoinAccount(wallet.BTC, wallet.Test(test), 0)
-		returnIfErr(err)
+			if bytes.Compare(seedHash, dblSHA256(seed)) != 0 {
+				returnIfErr(fmt.Errorf("incorrect password"))
+			}
 
-		// TODO: Determine the discover dynamically
-		d := agent.NewLitecoindAgent(
-			"http://localhost:17001/", "btcuser1",
-			"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
-		)
-		coinAccount.SetAgent(d)
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
-	},
-}
+			w = wallet.New(seed, dataFile)
 
-func init() {
-	btcCmd.PersistentFlags().BoolVarP(&test, "testnet", "t", false, "use the wallet in testnet")
-	btcCmd.AddCommand(&cobra.Command{
+			coinAccount, err = w.CoinAccount(ct, wallet.Test(test), 0)
+			returnIfErr(err)
+
+			coinAccount.SetAgent(a)
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			cmd.Help()
+		},
+	}
+
+	cmd.PersistentFlags().BoolVarP(&test, "testnet", "t", false, "use the wallet in testnet")
+	cmd.AddCommand(&cobra.Command{
 		Use:   "balance",
 		Short: "get balance of the wallet",
 		Long:  `get balance of the wallet`,
@@ -82,7 +82,7 @@ func init() {
 		},
 	})
 
-	btcCmd.AddCommand(&cobra.Command{
+	cmd.AddCommand(&cobra.Command{
 		Use:   "sync",
 		Short: "sync the wallet from the network",
 		Long:  `sync the wallet from the network`,
@@ -96,7 +96,7 @@ func init() {
 		},
 	})
 
-	btcCmd.AddCommand(&cobra.Command{
+	cmd.AddCommand(&cobra.Command{
 		Use:   "newaddress",
 		Short: "generate an used address of the wallet",
 		Long:  `generate an used address of the wallet`,
@@ -139,7 +139,7 @@ func init() {
 		},
 	}
 	sendCmd.Flags().StringVarP(&hexData, "hex-data", "H", "", "set hex bytes in the OP_RETURN")
-	btcCmd.AddCommand(sendCmd)
+	cmd.AddCommand(sendCmd)
 
 	sendManyCmd := &cobra.Command{
 		Use:   "sendmany [address,amount] [address,amount] ...",
@@ -180,5 +180,6 @@ func init() {
 		},
 	}
 	sendManyCmd.Flags().StringVarP(&hexData, "hex-data", "H", "", "set hex bytes in the OP_RETURN")
-	btcCmd.AddCommand(sendManyCmd)
+	cmd.AddCommand(sendManyCmd)
+	return cmd
 }

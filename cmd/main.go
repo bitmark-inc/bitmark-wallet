@@ -14,6 +14,7 @@ import (
 
 	"github.com/NebulousLabs/entropy-mnemonics"
 	"github.com/bitmark-inc/bitmark-wallet"
+	"github.com/bitmark-inc/bitmark-wallet/agent"
 	"github.com/boltdb/bolt"
 	// "github.com/hashicorp/hcl"
 
@@ -24,11 +25,6 @@ import (
 var (
 	ErrConfigBucketNotFound = fmt.Errorf("config bucket is not found")
 )
-
-var w *wallet.Wallet
-var coinAccount *wallet.CoinAccount
-
-var test bool
 
 func returnIfErr(err error) {
 	if err != nil {
@@ -218,8 +214,12 @@ func main() {
 		},
 	})
 
-	rootCmd.AddCommand(btcCmd)
-	rootCmd.AddCommand(ltcCmd)
+	a := agent.NewLitecoindAgent(
+		"http://localhost:17001/", "btcuser1",
+		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
+	)
+	rootCmd.AddCommand(NewCoinCmd("btc", "Bitcoin wallet", "Bitcoin wallet", wallet.BTC, a))
+	rootCmd.AddCommand(NewCoinCmd("ltc", "Litecoin wallet", "Litecoin wallet", wallet.LTC, a))
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
