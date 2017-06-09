@@ -12,7 +12,6 @@ import (
 // Follow the rule of account discovery in BIP44
 // https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#account-discovery
 const (
-	TxFeePerKb = 100000
 	AddressGap = 20
 )
 
@@ -29,11 +28,12 @@ type CoinAccount struct {
 	params     *address.Params
 	agent      agent.CoinAgent
 	store      AccountStore
+	feePerKB   uint64
 	index      uint32
 	identifier string
 }
 
-func calcTxFee(coins tx.UTXOs, opReturn *tx.TxOut, sends ...*tx.Send) (uint64, error) {
+func calcTxFee(coins tx.UTXOs, opReturn *tx.TxOut, sends []*tx.Send, feePerKB uint64) (uint64, error) {
 	// Set the maximum fee for calculation
 	ntx, used, err := tx.NewP2PKunsign(0.1*tx.Unit, coins, 0, sends...)
 	if err != nil {
@@ -52,15 +52,16 @@ func calcTxFee(coins tx.UTXOs, opReturn *tx.TxOut, sends ...*tx.Send) (uint64, e
 	if err != nil {
 		return 0, err
 	}
-	return uint64(len(rawTx)) * TxFeePerKb / 1000, nil
+	return uint64(len(rawTx)) * feePerKB / 1000, nil
 }
 
-func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends ...*tx.Send) (*tx.Tx, tx.UTXOs, error) {
+func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends []*tx.Send, feePerKB uint64) (*tx.Tx, tx.UTXOs, error) {
 	var opReturn *tx.TxOut
 	if customData != nil {
 		opReturn = tx.CustomTx(customData)
 	}
-	fee, err := calcTxFee(coins, opReturn, sends...)
+
+	fee, err := calcTxFee(coins, opReturn, sends, feePerKB)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -136,6 +137,7 @@ func (w Wallet) CoinAccount(ct CoinType, test Test, account uint32) (*CoinAccoun
 		Key:        accountKey,
 		store:      store,
 		params:     coinParams,
+		feePerKB:   CoinFee[ct],
 		identifier: pubkey.Address(),
 	}, nil
 }
@@ -290,7 +292,11 @@ func (c CoinAccount) GenCoins(amount uint64) (tx.UTXOs, uint64, error) {
 	return nil, total, ErrNotEnoughCoin
 }
 
-func (c CoinAccount) Send(sends []*tx.Send, customData []byte) (string, error) {
+func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (string, error) {
+	feePerKB := c.feePerKB
+	if fee != 0 {
+		feePerKB = fee
+	}
 	// Generate the change address in advance.
 	changeAddr, err := c.NewChangeAddr()
 	if err != nil {
@@ -314,7 +320,7 @@ func (c CoinAccount) Send(sends []*tx.Send, customData []byte) (string, error) {
 		return "", err
 	}
 
-	ntx, used, err := c.prepareTx(coins, customData, sends...)
+	ntx, used, err := c.prepareTx(coins, customData, sends, feePerKB)
 	if err != nil {
 		return "", err
 	}

@@ -17,6 +17,11 @@ var CoinMap = map[CoinType]uint32{
 	LTC: 2,
 }
 
+var CoinFee = map[CoinType]uint64{
+	BTC: 20000,
+	LTC: 100000,
+}
+
 var (
 	//BitcoinMain is params for main net.
 	BitcoinMain = &address.Params{

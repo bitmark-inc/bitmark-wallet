@@ -123,6 +123,7 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 		},
 	})
 
+	var fee uint64
 	var hexData string
 	sendCmd := &cobra.Command{
 		Use:   "send [address] [amount]",
@@ -149,12 +150,13 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 			err = coinAccount.Discover()
 			returnIfErr(err)
 
-			rawTx, err := coinAccount.Send([]*tx.Send{{address, amount}}, customData)
+			rawTx, err := coinAccount.Send([]*tx.Send{{address, amount}}, customData, fee)
 			returnIfErr(err)
 			fmt.Println("Raw Transaction: ", rawTx)
 		},
 	}
 	sendCmd.Flags().StringVarP(&hexData, "hex-data", "H", "", "set hex bytes in the OP_RETURN")
+	sendCmd.Flags().Uint64VarP(&fee, "fee", "f", 0, "set fee for per kB transaction.")
 	cmd.AddCommand(sendCmd)
 
 	sendManyCmd := &cobra.Command{
@@ -190,12 +192,13 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 			err = coinAccount.Discover()
 			returnIfErr(err)
 
-			rawTx, err := coinAccount.Send(sends, customData)
+			rawTx, err := coinAccount.Send(sends, customData, fee)
 			returnIfErr(err)
 			fmt.Println("Raw Transaction: ", rawTx)
 		},
 	}
 	sendManyCmd.Flags().StringVarP(&hexData, "hex-data", "H", "", "set hex bytes in the OP_RETURN")
+	sendManyCmd.Flags().Uint64VarP(&fee, "fee", "f", 0, "set fee for per kB transaction.")
 	cmd.AddCommand(sendManyCmd)
 	return cmd
 }
