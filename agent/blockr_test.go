@@ -6,7 +6,7 @@ import (
 )
 
 func TestBlockrGetAddr(t *testing.T) {
-	d := NewBlockrAgent()
+	d := NewBlockrAgent("btc.blockr.io")
 	utxos, err := d.GetAddrUnspent("198aMn6ZYAczwrE5NvNTUMyJ5qkfy4g3Hi")
 	assert.NoError(t, err)
 	assert.NotNil(t, utxos)

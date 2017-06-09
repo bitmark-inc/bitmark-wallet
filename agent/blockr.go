@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/bitgoin/tx"
+	"net/url"
 )
 
 type BlockrUTXO struct {
@@ -44,12 +45,17 @@ type BlockrUnspentResp struct {
 }
 
 type BlockrAgent struct {
-	client *http.Client
+	apiHost string
+	client  *http.Client
 }
 
 func (b BlockrAgent) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
-	unspentQuery := fmt.Sprintf("http://btc.blockr.io/api/v1/address/unspent/%s", addr)
-	r1, err := b.client.Get(unspentQuery)
+	u := url.URL{
+		Scheme: "https",
+		Host:   b.apiHost,
+		Path:   fmt.Sprintf("/api/v1/address/unspent/%s", addr),
+	}
+	r1, err := b.client.Get(u.String())
 	if err != nil {
 		return nil, ErrQueryFailure
 	}
@@ -80,10 +86,9 @@ func (b BlockrAgent) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
 		return utxos, nil
 	}
 
-	addrQuery := fmt.Sprintf("http://btc.blockr.io/api/v1/address/info/%s", addr)
-	r2, err := b.client.Get(addrQuery)
+	u.Path = fmt.Sprintf("/api/v1/address/info/%s", addr)
+	r2, err := b.client.Get(u.String())
 	if err != nil {
-		return nil, ErrQueryFailure
 	}
 	defer r2.Body.Close()
 
@@ -101,7 +106,7 @@ func (b BlockrAgent) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
 	return nil, ErrNoUnspentTx
 }
 
-func NewBlockrAgent() *BlockrAgent {
+func NewBlockrAgent(apiHost string) *BlockrAgent {
 	var t = &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout: 5 * time.Second,
@@ -114,6 +119,7 @@ func NewBlockrAgent() *BlockrAgent {
 	}
 
 	return &BlockrAgent{
-		client: c,
+		apiHost: apiHost,
+		client:  c,
 	}
 }

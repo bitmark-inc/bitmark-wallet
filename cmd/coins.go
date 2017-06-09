@@ -67,7 +67,7 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 			var a agent.CoinAgent
 			switch agentType {
 			case "blockr":
-				// a = agent.NewBlockrAgent(agentNode)
+				a = agent.NewBlockrAgent(agentNode)
 			case "daemon":
 				fallthrough
 			default:
