@@ -6,10 +6,17 @@ import (
 )
 
 var (
-	ErrNoTxForAddr  = fmt.Errorf("no transaction for the address")
-	ErrNoUnspentTx  = fmt.Errorf("no spentable transaction for the address")
-	ErrQueryFailure = fmt.Errorf("fail to query from server")
+	ErrNoTxForAddr = fmt.Errorf("no transaction for the address")
+	ErrNoUnspentTx = fmt.Errorf("no spentable transaction for the address")
 )
+
+type ErrQueryFailure struct {
+	message string
+}
+
+func (e ErrQueryFailure) Error() string {
+	return fmt.Sprintf("fail to query from server: %s", e.message)
+}
 
 type CoinAgent interface {
 	GetAddrUnspent(string) ([]*tx.UTXO, error)
