@@ -146,7 +146,7 @@ func TestWalletSend(t *testing.T) {
 	err = ltcAccount.Discover()
 	assert.NoError(t, err)
 
-	rawTx, err := ltcAccount.Send([]*tx.Send{{"mkeFURLRyDugRRP1kwKRcNBZwkVCPPmYkt", 155600000}}, nil)
+	rawTx, err := ltcAccount.Send([]*tx.Send{{"mkeFURLRyDugRRP1kwKRcNBZwkVCPPmYkt", 155600000}}, nil, 0)
 	t.Log(err)
 	t.Log(rawTx)
 }
