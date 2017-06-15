@@ -1,0 +1,24 @@
+[submodule "command/bitmark-wallet/vendor/github.com/NebulousLabs/entropy-mnemonics"]
+	path = command/bitmark-wallet/vendor/github.com/NebulousLabs/entropy-mnemonics
+	url = https://github.com/NebulousLabs/entropy-mnemonics
+[submodule "command/bitmark-wallet/vendor/github.com/bitgoin/tx"]
+	path = command/bitmark-wallet/vendor/github.com/bitgoin/tx
+	url = https://github.com/bitgoin/tx
+[submodule "command/bitmark-wallet/vendor/github.com/boltdb/bolt"]
+	path = command/bitmark-wallet/vendor/github.com/boltdb/bolt
+	url = https://github.com/boltdb/bolt
+[submodule "command/bitmark-wallet/vendor/github.com/spf13/cobra"]
+	path = command/bitmark-wallet/vendor/github.com/spf13/cobra
+	url = https://github.com/spf13/cobra
+[submodule "command/bitmark-wallet/vendor/golang.org/x/crypto"]
+	path = command/bitmark-wallet/vendor/golang.org/x/crypto
+	url = https://go.googlesource.com/crypto
+[submodule "command/bitmark-wallet/vendor/github.com/spf13/pflag"]
+	path = command/bitmark-wallet/vendor/github.com/spf13/pflag
+	url = https://github.com/spf13/pflag
+[submodule "command/bitmark-wallet/vendor/golang.org/x/text"]
+	path = command/bitmark-wallet/vendor/golang.org/x/text
+	url = https://go.googlesource.com/text
+[submodule "command/bitmark-wallet/vendor/github.com/bitmark-inc/bitmark-wallet"]
+	path = command/bitmark-wallet/vendor/github.com/bitmark-inc/bitmark-wallet
+	url = https://github.com/bitmark-inc/bitmark-wallet
