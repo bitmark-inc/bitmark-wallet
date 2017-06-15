@@ -81,7 +81,7 @@ func (l LitecoindAgent) jsonRPC(p RPCParam) (*RPCResponse, error) {
 func (l LitecoindAgent) importAddress(addr string) error {
 	p := RPCParam{
 		Method: "importaddress",
-		Params: []interface{}{addr},
+		Params: []interface{}{addr, "", false},
 	}
 	_, err := l.jsonRPC(p)
 	return err
