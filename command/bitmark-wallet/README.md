@@ -5,7 +5,8 @@ This is the command line interface for bitmark-wallet.
 ## Install
 
 ```
-$ go install bitmark-inc/bitmark-wallet/cmd
+$ go get github.com/bitmark-inc/bitmark-wallet
+$ go install github.com/bitmark-inc/bitmark-wallet/command/bitmark-wallet
 ```
 
 ## Usage
