@@ -15,11 +15,12 @@ import (
 	"github.com/NebulousLabs/entropy-mnemonics"
 	"github.com/bitmark-inc/bitmark-wallet"
 	"github.com/boltdb/bolt"
-	// "github.com/hashicorp/hcl"
-
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"path"
 )
+
+var cfgFile string
 
 var (
 	ErrConfigBucketNotFound = fmt.Errorf("config bucket is not found")
@@ -80,7 +81,7 @@ func dblSHA256(b []byte) []byte {
 	return hash[:]
 }
 
-func setConfig(dataFile string, key, value []byte) error {
+func setWalletConfig(dataFile string, key, value []byte) error {
 	db, err := bolt.Open(dataFile, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		return err
@@ -96,7 +97,7 @@ func setConfig(dataFile string, key, value []byte) error {
 	})
 }
 
-func getConfig(dataFile string, key []byte) ([]byte, error) {
+func getWalletConfig(dataFile string, key []byte) ([]byte, error) {
 	db, err := bolt.Open(dataFile, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		return nil, err
@@ -117,19 +118,32 @@ func getConfig(dataFile string, key []byte) ([]byte, error) {
 	return b, nil
 }
 
-func main() {
-	var datadir, conf string
-	var rootCmd = &cobra.Command{
-		Use:   "bitmark-wallet",
-		Short: "bitmark-wallet is a wallet supports multiple crypto currencies",
-		Long:  `bitmark-wallet is a wallet supports multiple crypto currencies`,
-		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Help()
-		},
-	}
+var rootCmd = &cobra.Command{
+	Use:   "bitmark-wallet",
+	Short: "bitmark-wallet is a wallet supports multiple crypto currencies",
+	Long:  `bitmark-wallet is a wallet supports multiple crypto currencies`,
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
+}
 
-	rootCmd.PersistentFlags().StringVarP(&datadir, "datadir", "d", ".", "Directory for the wallet data")
-	rootCmd.PersistentFlags().StringVarP(&conf, "conf", "F", "wallet.dat", "Filename of wallet data")
+func init() {
+	cobra.OnInitialize(func() {
+		viper.SetConfigType("hcl")
+		viper.SetConfigFile(cfgFile)
+		if err := viper.ReadInConfig(); err != nil {
+			fmt.Println("Can't read config:", err)
+			os.Exit(1)
+		}
+	})
+
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "conf", "C", "wallet.conf", "Path to config file")
+	rootCmd.PersistentFlags().StringP("datadir", "d", "", "Directory for the wallet data")
+	rootCmd.PersistentFlags().StringP("walletdb", "W", "", "Filename of wallet db")
+
+	viper.BindPFlag("datadir", rootCmd.PersistentFlags().Lookup("datadir"))
+	viper.BindPFlag("walletdb", rootCmd.PersistentFlags().Lookup("walletdb"))
+
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "init",
 		Short: "init a wallet",
@@ -156,10 +170,16 @@ func main() {
 				log.Fatal(err)
 			}
 
-			confFile := path.Join(datadir, conf)
-			os.Remove(confFile)
-			err = setConfig(confFile, []byte("HASH"), dblSHA256(seed))
-			err = setConfig(confFile, []byte("SEED"), encryptedSeed)
+			datadir := viper.GetString("datadir")
+			walletdb := viper.GetString("walletdb")
+
+			dataFile := path.Join(datadir, walletdb)
+			if dataFile == "" {
+				returnIfErr(fmt.Errorf("invalid wallet path"))
+			}
+			os.Remove(dataFile)
+			err = setWalletConfig(dataFile, []byte("HASH"), dblSHA256(seed))
+			err = setWalletConfig(dataFile, []byte("SEED"), encryptedSeed)
 			if nil != err {
 				log.Fatal(err)
 			}
@@ -197,14 +217,21 @@ func main() {
 
 			seed, err := decryptSeed(append([]byte{}, encryptedSeed...), passHash[:])
 
-			confFile := path.Join(datadir, conf)
-			os.Remove(confFile)
+			datadir := viper.GetString("datadir")
+			walletdb := viper.GetString("walletdb")
 
-			err = setConfig(confFile, []byte("HASH"), dblSHA256(seed))
+			dataFile := path.Join(datadir, walletdb)
+			if dataFile == "" {
+				returnIfErr(fmt.Errorf("invalid wallet path"))
+			}
+
+			os.Remove(dataFile)
+
+			err = setWalletConfig(dataFile, []byte("HASH"), dblSHA256(seed))
 			if nil != err {
 				log.Fatal(err)
 			}
-			err = setConfig(confFile, []byte("SEED"), encryptedSeed)
+			err = setWalletConfig(dataFile, []byte("SEED"), encryptedSeed)
 			if nil != err {
 				log.Fatal(err)
 			}
@@ -215,7 +242,9 @@ func main() {
 
 	rootCmd.AddCommand(NewCoinCmd("btc", "Bitcoin wallet", "Bitcoin wallet", wallet.BTC))
 	rootCmd.AddCommand(NewCoinCmd("ltc", "Litecoin wallet", "Litecoin wallet", wallet.LTC))
+}
 
+func main() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

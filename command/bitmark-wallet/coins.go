@@ -12,6 +12,10 @@ import (
 	"github.com/bitmark-inc/bitmark-wallet"
 	"github.com/bitmark-inc/bitmark-wallet/agent"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"os"
+	"reflect"
 )
 
 var w *wallet.Wallet
@@ -19,8 +23,59 @@ var coinAccount *wallet.CoinAccount
 
 var test bool
 
+type AgentData struct {
+	Type string
+	Node string
+	User string
+	Pass string
+}
+
+func (a *AgentData) ParseFlag(flag *pflag.FlagSet) {
+	// TODO: improve by struct tags
+	if f := flag.Lookup("agent-type"); f != nil && f.Changed {
+		a.Type = f.Value.String()
+	}
+	if f := flag.Lookup("agent-node"); f != nil && f.Changed {
+		a.Node = f.Value.String()
+	}
+	if f := flag.Lookup("agent-user"); f != nil && f.Changed {
+		a.User = f.Value.String()
+	}
+	if f := flag.Lookup("agent-pass"); f != nil && f.Changed {
+		a.Pass = f.Value.String()
+	}
+}
+
+var agentData AgentData
+
 func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
-	var agentType, agentNode, agentUser, agentPass string
+	cobra.OnInitialize(func() {
+		switch v := viper.Get("agent").(type) {
+		case []map[string]interface{}:
+			if len(v) > 0 {
+				agentMap := v[0]
+				t, _ := agentMap["type"].(string)
+				n, _ := agentMap["node"].(string)
+				u, _ := agentMap["user"].(string)
+				p, _ := agentMap["pass"].(string)
+
+				agentData = AgentData{
+					Type: t,
+					Node: n,
+					User: u,
+					Pass: p,
+				}
+			}
+		case map[string]interface{}:
+			err := viper.UnmarshalKey("agent", &agentData)
+			if err != nil {
+				fmt.Printf("Viper parser error: %s", err)
+			}
+		default:
+			fmt.Println("Unexpected type agent value:", reflect.TypeOf(v))
+			os.Exit(1)
+		}
+	})
 
 	var cmd = &cobra.Command{
 		Use:   use,
@@ -28,6 +83,8 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 		Long:  long,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// PreRun only for subcommand
+			agentData.ParseFlag(cmd.Parent().PersistentFlags())
+
 			if len(args) > 0 && args[0] == "help" {
 				return
 			}
@@ -35,14 +92,15 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 				return
 			}
 
-			datadir, err := cmd.Root().PersistentFlags().GetString("datadir")
-			returnIfErr(err)
+			datadir := viper.GetString("datadir")
+			walletdb := viper.GetString("walletdb")
 
-			conf, err := cmd.Root().PersistentFlags().GetString("conf")
-			returnIfErr(err)
+			dataFile := path.Join(datadir, walletdb)
+			if dataFile == "" {
+				returnIfErr(fmt.Errorf("invalid wallet path"))
+			}
 
-			dataFile := path.Join(datadir, conf)
-			encryptedSeed, err := getConfig(dataFile, []byte("SEED"))
+			encryptedSeed, err := getWalletConfig(dataFile, []byte("SEED"))
 			returnIfErr(err)
 
 			password, err := readPassword("Input wallet password: ", 0)
@@ -52,7 +110,7 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 			seed, err := decryptSeed(encryptedSeed, passHash[:])
 			returnIfErr(err)
 
-			seedHash, err := getConfig(dataFile, []byte("HASH"))
+			seedHash, err := getWalletConfig(dataFile, []byte("HASH"))
 			returnIfErr(err)
 
 			if bytes.Compare(seedHash, dblSHA256(seed)) != 0 {
@@ -65,14 +123,14 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 			returnIfErr(err)
 
 			var a agent.CoinAgent
-			switch agentType {
+			switch agentData.Type {
 			case "blockr":
-				a = agent.NewBlockrAgent(agentNode)
+				a = agent.NewBlockrAgent(agentData.Node)
 			case "daemon":
 				fallthrough
 			default:
-				url := fmt.Sprintf("http://%s/", agentNode)
-				a = agent.NewLitecoindAgent(url, agentUser, agentPass)
+				url := fmt.Sprintf("http://%s/", agentData.Node)
+				a = agent.NewLitecoindAgent(url, agentData.User, agentData.Pass)
 			}
 			coinAccount.SetAgent(a)
 		},
@@ -80,10 +138,10 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 			cmd.Help()
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&agentType, "agent-type", "A", "daemon", "agent type of a wallet")
-	cmd.PersistentFlags().StringVarP(&agentNode, "agent-node", "N", "", "node of an agent")
-	cmd.PersistentFlags().StringVarP(&agentUser, "agent-user", "U", "", "user of an agent")
-	cmd.PersistentFlags().StringVarP(&agentPass, "agent-pass", "P", "", "password of an agent")
+	cmd.PersistentFlags().StringP("agent-type", "A", "daemon", "agent type of a wallet")
+	cmd.PersistentFlags().StringP("agent-node", "N", "", "node of an agent")
+	cmd.PersistentFlags().StringP("agent-user", "U", "", "user of an agent")
+	cmd.PersistentFlags().StringP("agent-pass", "P", "", "password of an agent")
 
 	cmd.PersistentFlags().BoolVarP(&test, "testnet", "t", false, "use the wallet in testnet")
 	cmd.AddCommand(&cobra.Command{

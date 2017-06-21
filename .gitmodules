@@ -22,3 +22,6 @@
 [submodule "command/bitmark-wallet/vendor/github.com/bitmark-inc/bitmark-wallet"]
 	path = command/bitmark-wallet/vendor/github.com/bitmark-inc/bitmark-wallet
 	url = https://github.com/bitmark-inc/bitmark-wallet
+[submodule "command/bitmark-wallet/vendor/github.com/spf13/viper"]
+	path = command/bitmark-wallet/vendor/github.com/spf13/viper
+	url = https://github.com/spf13/viper

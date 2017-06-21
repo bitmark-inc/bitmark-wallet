@@ -11,6 +11,10 @@ $ go install github.com/bitmark-inc/bitmark-wallet/command/bitmark-wallet
 
 ## Usage
 
+### Configuration
+
+Copy and update the file `wallet.config.sample`.
+
 #### Create a new wallet
 ```
 $ bitmark-wallet init

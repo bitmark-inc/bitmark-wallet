@@ -1,0 +1,11 @@
+
+datadir = "."
+walletdb = "wallet.dat"
+
+agent {
+  type = "daemon"
+  node = "localhost:17001"
+  user = "rpcuser"
+  pass = "password"
+}
+
