@@ -25,6 +25,16 @@ func readMnemonic() (string, error) {
 }
 
 func readPassword(prompt string, passLen int) (string, error) {
+
+	password := os.Getenv("WALLET_PASSWORD")
+	if password != "" {
+		if len(password) > passLen {
+			return password, nil
+		} else {
+			fmt.Println("Invalid environment: WALLET_PASSWORD")
+		}
+	}
+
 	oldState, err := terminal.MakeRaw(0)
 	if err != nil {
 		return "", err
@@ -35,7 +45,7 @@ func readPassword(prompt string, passLen int) (string, error) {
 		return "", err
 	}
 	passwordConsole := terminal.NewTerminal(tmpIO, "")
-	password, err := passwordConsole.ReadPassword(prompt)
+	password, err = passwordConsole.ReadPassword(prompt)
 	if err != nil {
 		return "", err
 	}
