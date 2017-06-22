@@ -19,7 +19,7 @@ var CoinMap = map[CoinType]uint32{
 
 var CoinFee = map[CoinType]uint64{
 	BTC: 20000,
-	LTC: 100000,
+	LTC: 200000,
 }
 
 var (
