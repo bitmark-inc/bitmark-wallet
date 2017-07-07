@@ -33,49 +33,41 @@ type CoinAccount struct {
 	identifier string
 }
 
-func calcTxFee(coins tx.UTXOs, opReturn *tx.TxOut, sends []*tx.Send, feePerKB uint64) (uint64, error) {
-	// Set the maximum fee for calculation
-	ntx, used, err := tx.NewP2PKunsign(0.1*tx.Unit, coins, 0, sends...)
-	if err != nil {
-		return 0, err
-	}
-
-	if opReturn != nil {
-		ntx.TxOut = append(ntx.TxOut, opReturn)
-	}
-
-	if err = tx.FillP2PKsign(ntx, used); err != nil {
-		return 0, err
-	}
-
-	rawTx, err := ntx.Pack()
-	if err != nil {
-		return 0, err
-	}
-	return uint64(len(rawTx)) * feePerKB / 1000, nil
-}
-
 func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends []*tx.Send, feePerKB uint64) (*tx.Tx, tx.UTXOs, error) {
 	var opReturn *tx.TxOut
 	if customData != nil {
 		opReturn = tx.CustomTx(customData)
 	}
 
-	fee, err := calcTxFee(coins, opReturn, sends, feePerKB)
-	if err != nil {
-		return nil, nil, err
-	}
-	fmt.Println("Fee: ", fee)
-	ntx, used, err := tx.NewP2PKunsign(fee, coins, 0, sends...)
-	if err != nil {
-		return nil, nil, err
-	}
+	fee := feePerKB
+	// Generate tx with a suitable fee. Use the feePerKB as the fee in the beginning
+	for {
+		ntx, used, err := tx.NewP2PKunsign(fee, coins, 0, sends...)
+		if err != nil {
+			return nil, nil, err
+		}
 
-	if opReturn != nil {
-		ntx.TxOut = append(ntx.TxOut, opReturn)
-	}
+		if opReturn != nil {
+			ntx.TxOut = append(ntx.TxOut, opReturn)
+		}
 
-	return ntx, used, nil
+		if err = tx.FillP2PKsign(ntx, used); err != nil {
+			return nil, nil, err
+		}
+
+		rawTx, err := ntx.Pack()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		newFee := uint64(len(rawTx)) * feePerKB / 1000
+		if newFee > fee {
+			fee = newFee
+		} else {
+			fmt.Println("Fee: ", fee)
+			return ntx, used, nil
+		}
+	}
 }
 
 // String returns the identifier of an account.
