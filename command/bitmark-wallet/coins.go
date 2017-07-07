@@ -130,7 +130,7 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 				fallthrough
 			default:
 				url := fmt.Sprintf("http://%s/", agentData.Node)
-				a = agent.NewLitecoindAgent(url, agentData.User, agentData.Pass)
+				a = agent.NewDaemonAgent(url, agentData.User, agentData.Pass)
 			}
 			coinAccount.SetAgent(a)
 		},

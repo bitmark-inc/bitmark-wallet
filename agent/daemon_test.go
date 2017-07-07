@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func TestLitecoindGetAddr(t *testing.T) {
-	d := NewLitecoindAgent("http://localhost:17001/", "btcuser1",
+func TestDaemonGetAddr(t *testing.T) {
+	d := NewDaemonAgent("http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw")
 	utxos, err := d.GetAddrUnspent("mvxpcRGnjRpme59CAnLHTxFjwd8ivwWbQb")
 	assert.NoError(t, err)

@@ -38,7 +38,7 @@ func TestWalletAgent(t *testing.T) {
 
 	ltcAccount, err := w.CoinAccount(LTC, true, 0)
 	assert.NoError(t, err)
-	ltcAccount.SetAgent(agent.NewLitecoindAgent(
+	ltcAccount.SetAgent(agent.NewDaemonAgent(
 		"http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
 	))
@@ -64,7 +64,7 @@ func TestWalletGetUTXO(t *testing.T) {
 
 	ltcAccount, err := w.CoinAccount(LTC, true, 0)
 	assert.NoError(t, err)
-	ltcAccount.SetAgent(agent.NewLitecoindAgent(
+	ltcAccount.SetAgent(agent.NewDaemonAgent(
 		"http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
 	))
@@ -84,7 +84,7 @@ func TestWalletGetBalance(t *testing.T) {
 
 	ltcAccount, err := w.CoinAccount(LTC, true, 0)
 	assert.NoError(t, err)
-	ltcAccount.SetAgent(agent.NewLitecoindAgent(
+	ltcAccount.SetAgent(agent.NewDaemonAgent(
 		"http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
 	))
@@ -108,7 +108,7 @@ func TestWalletGenCoins(t *testing.T) {
 
 	ltcAccount, err := w.CoinAccount(LTC, true, 0)
 	assert.NoError(t, err)
-	ltcAccount.SetAgent(agent.NewLitecoindAgent(
+	ltcAccount.SetAgent(agent.NewDaemonAgent(
 		"http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
 	))
@@ -138,7 +138,7 @@ func TestWalletSend(t *testing.T) {
 
 	ltcAccount, err := w.CoinAccount(LTC, true, 0)
 	assert.NoError(t, err)
-	ltcAccount.SetAgent(agent.NewLitecoindAgent(
+	ltcAccount.SetAgent(agent.NewDaemonAgent(
 		"http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw",
 	))

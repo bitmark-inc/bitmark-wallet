@@ -41,14 +41,14 @@ type RPCResponse struct {
 	Error  *RPCError       `json:"error"`
 }
 
-type LitecoindAgent struct {
+type DaemonAgent struct {
 	apiUrl   string
 	username string
 	password string
 	client   *http.Client
 }
 
-func (l LitecoindAgent) jsonRPC(p RPCParam) (*RPCResponse, error) {
+func (da DaemonAgent) jsonRPC(p RPCParam) (*RPCResponse, error) {
 	var buf bytes.Buffer
 	e := json.NewEncoder(&buf)
 	err := e.Encode(p)
@@ -56,10 +56,10 @@ func (l LitecoindAgent) jsonRPC(p RPCParam) (*RPCResponse, error) {
 		return nil, err
 	}
 
-	req, _ := http.NewRequest("POST", l.apiUrl, &buf)
-	req.SetBasicAuth(l.username, l.password)
+	req, _ := http.NewRequest("POST", da.apiUrl, &buf)
+	req.SetBasicAuth(da.username, da.password)
 
-	r, err := l.client.Do(req)
+	r, err := da.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -78,22 +78,22 @@ func (l LitecoindAgent) jsonRPC(p RPCParam) (*RPCResponse, error) {
 	return v, nil
 }
 
-func (l LitecoindAgent) importAddress(addr string) error {
+func (da DaemonAgent) importAddress(addr string) error {
 	p := RPCParam{
 		Method: "importaddress",
 		Params: []interface{}{addr, "", false},
 	}
-	_, err := l.jsonRPC(p)
+	_, err := da.jsonRPC(p)
 	return err
 }
 
-func (l LitecoindAgent) listUnspent(addr string) (tx.UTXOs, error) {
+func (da DaemonAgent) listUnspent(addr string) (tx.UTXOs, error) {
 	utxos := make([]*tx.UTXO, 0)
 	p := RPCParam{
 		Method: "listunspent",
 		Params: []interface{}{0, 999999, []string{addr}},
 	}
-	v, err := l.jsonRPC(p)
+	v, err := da.jsonRPC(p)
 	if err != nil {
 		return nil, err
 	}
@@ -120,13 +120,13 @@ func (l LitecoindAgent) listUnspent(addr string) (tx.UTXOs, error) {
 	return utxos, nil
 }
 
-func (l LitecoindAgent) isAddressUsed(address string) (bool, error) {
+func (da DaemonAgent) isAddressUsed(address string) (bool, error) {
 	p := RPCParam{
 		Method: "listreceivedbyaddress",
 		Params: []interface{}{1, false, true},
 	}
 
-	v, err := l.jsonRPC(p)
+	v, err := da.jsonRPC(p)
 	if err != nil {
 		return false, err
 	}
@@ -145,13 +145,13 @@ func (l LitecoindAgent) isAddressUsed(address string) (bool, error) {
 	return false, nil
 }
 
-func (l LitecoindAgent) Send(rawTx string) (string, error) {
+func (da DaemonAgent) Send(rawTx string) (string, error) {
 	p := RPCParam{
 		Method: "sendrawtransaction",
 		Params: []interface{}{rawTx},
 	}
 
-	v, err := l.jsonRPC(p)
+	v, err := da.jsonRPC(p)
 	if err != nil {
 		return "", err
 	}
@@ -165,19 +165,19 @@ func (l LitecoindAgent) Send(rawTx string) (string, error) {
 	return txId, nil
 }
 
-func (l LitecoindAgent) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
-	err := l.importAddress(addr)
+func (da DaemonAgent) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
+	err := da.importAddress(addr)
 	if err != nil {
-		return nil, ErrImportAddress
+		return nil, fmt.Errorf("fail to import address: %s", err.Error())
 	}
 
-	utxos, err := l.listUnspent(addr)
+	utxos, err := da.listUnspent(addr)
 	if len(utxos) > 0 {
 		return utxos, nil
 	}
 
 	// no unspent tx, check if it is an empty address
-	if used, err := l.isAddressUsed(addr); err != nil {
+	if used, err := da.isAddressUsed(addr); err != nil {
 		return nil, err
 	} else if !used {
 		return nil, ErrNoTxForAddr
@@ -185,7 +185,7 @@ func (l LitecoindAgent) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
 	return nil, ErrNoUnspentTx
 }
 
-func NewLitecoindAgent(apiUrl, username, password string) *LitecoindAgent {
+func NewDaemonAgent(apiUrl, username, password string) *DaemonAgent {
 	var t = &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout: 5 * time.Second,
@@ -197,7 +197,7 @@ func NewLitecoindAgent(apiUrl, username, password string) *LitecoindAgent {
 		Transport: t,
 	}
 
-	return &LitecoindAgent{
+	return &DaemonAgent{
 		apiUrl:   apiUrl,
 		username: username,
 		password: password,
