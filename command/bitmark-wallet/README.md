@@ -45,7 +45,7 @@ Input wallet password:
 Sync data from network. It takes a period of time...
 Balance:  67603099
 
-$ bitmark-wallet ltc -t -N localhost:17001 -U btcuser -P password ltc -t -N localhost:17001 -U btcuser1 -P pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw send 'mnw1RtVwS5CRzbwV4rMxTiUqGec2DuK43n' '20000' -H 'efc02c2af662db5dcc900701fc1d77047e8432d8feabe0db949fa0967525db770a0850567d4e322e691b825632cd653d'
+$ bitmark-wallet ltc -t -N localhost:17001 -U btcuser -P password send 'mnw1RtVwS5CRzbwV4rMxTiUqGec2DuK43n' '20000' -H 'efc02c2af662db5dcc900701fc1d77047e8432d8feabe0db949fa0967525db770a0850567d4e322e691b825632cd653d'
 Input wallet password:
 Fee:  28400
 Raw Transaction:  5b35f3d330dbad503f2b26313b6ac0dceb7907186303ba7c7d3ab845c598e0e6
