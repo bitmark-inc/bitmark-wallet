@@ -33,7 +33,7 @@ type CoinAccount struct {
 	identifier string
 }
 
-func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends []*tx.Send, feePerKB uint64) (*tx.Tx, tx.UTXOs, error) {
+func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends []*tx.Send, feePerKB uint64) (*tx.Tx, error) {
 	var opReturn *tx.TxOut
 	if customData != nil {
 		opReturn = tx.CustomTx(customData)
@@ -44,7 +44,7 @@ func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends []*tx.Se
 	for {
 		ntx, used, err := tx.NewP2PKunsign(fee, coins, 0, sends...)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		if opReturn != nil {
@@ -52,12 +52,12 @@ func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends []*tx.Se
 		}
 
 		if err = tx.FillP2PKsign(ntx, used); err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		rawTx, err := ntx.Pack()
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		newFee := uint64(len(rawTx)) * feePerKB / 1000
@@ -65,7 +65,7 @@ func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends []*tx.Se
 			fee = newFee
 		} else {
 			fmt.Println("Fee: ", fee)
-			return ntx, used, nil
+			return ntx, nil
 		}
 	}
 }
@@ -312,14 +312,11 @@ func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (stri
 		return "", err
 	}
 
-	ntx, used, err := c.prepareTx(coins, customData, sends, feePerKB)
+	ntx, err := c.prepareTx(coins, customData, sends, feePerKB)
 	if err != nil {
 		return "", err
 	}
-	err = tx.FillP2PKsign(ntx, used)
-	if err != nil {
-		return "", err
-	}
+
 	b, err := ntx.Pack()
 	if err != nil {
 		return "", err
