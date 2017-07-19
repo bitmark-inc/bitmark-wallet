@@ -321,5 +321,10 @@ func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (stri
 	if err != nil {
 		return "", err
 	}
-	return c.agent.Send(hex.EncodeToString(b))
+
+	txId, err := c.agent.Send(hex.EncodeToString(b))
+	if err != nil {
+		fmt.Println("request tx:", hex.EncodeToString(b))
+	}
+	return txId, err
 }
