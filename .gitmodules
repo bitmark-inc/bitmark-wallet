@@ -52,3 +52,6 @@
 [submodule "command/bitmark-wallet/vendor/github.com/spf13/cast"]
 	path = command/bitmark-wallet/vendor/github.com/spf13/cast
 	url = https://github.com/spf13/cast
+[submodule "command/bitmark-wallet/vendor/golang.org/x/sys"]
+	path = command/bitmark-wallet/vendor/golang.org/x/sys
+	url = https://go.googlesource.com/sys
