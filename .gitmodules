@@ -25,3 +25,30 @@
 [submodule "command/bitmark-wallet/vendor/github.com/spf13/viper"]
 	path = command/bitmark-wallet/vendor/github.com/spf13/viper
 	url = https://github.com/spf13/viper
+[submodule "command/bitmark-wallet/vendor/github.com/hashicorp/hcl"]
+	path = command/bitmark-wallet/vendor/github.com/hashicorp/hcl
+	url = https://github.com/hashicorp/hcl
+[submodule "command/bitmark-wallet/vendor/github.com/magiconair/properties"]
+	path = command/bitmark-wallet/vendor/github.com/magiconair/properties
+	url = https://github.com/magiconair/properties
+[submodule "command/bitmark-wallet/vendor/github.com/mitchellh/mapstructure"]
+	path = command/bitmark-wallet/vendor/github.com/mitchellh/mapstructure
+	url = https://github.com/mitchellh/mapstructure
+[submodule "command/bitmark-wallet/vendor/github.com/pelletier/go-toml"]
+	path = command/bitmark-wallet/vendor/github.com/pelletier/go-toml
+	url = https://github.com/pelletier/go-toml
+[submodule "command/bitmark-wallet/vendor/github.com/spf13/afero"]
+	path = command/bitmark-wallet/vendor/github.com/spf13/afero
+	url = https://github.com/spf13/afero
+[submodule "command/bitmark-wallet/vendor/github.com/spf13/jwalterweatherman"]
+	path = command/bitmark-wallet/vendor/github.com/spf13/jwalterweatherman
+	url = https://github.com/spf13/jwalterweatherman
+[submodule "command/bitmark-wallet/vendor/gopkg.in/yaml.v2"]
+	path = command/bitmark-wallet/vendor/gopkg.in/yaml.v2
+	url = https://gopkg.in/yaml.v2
+[submodule "command/bitmark-wallet/vendor/github.com/fsnotify/fsnotify"]
+	path = command/bitmark-wallet/vendor/github.com/fsnotify/fsnotify
+	url = https://github.com/fsnotify/fsnotify
+[submodule "command/bitmark-wallet/vendor/github.com/spf13/cast"]
+	path = command/bitmark-wallet/vendor/github.com/spf13/cast
+	url = https://github.com/spf13/cast
