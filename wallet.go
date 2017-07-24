@@ -64,7 +64,6 @@ func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends []*tx.Se
 		if newFee > fee {
 			fee = newFee
 		} else {
-			fmt.Println("Fee: ", fee)
 			return ntx, nil
 		}
 	}
