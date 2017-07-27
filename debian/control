@@ -1,0 +1,20 @@
+Source: bitmark-wallet
+Section: non-free/admin
+Priority: optional
+Maintainer: Bitmark Developers <developers@bitmark.com>
+Uploaders: Bitmark Developers <developers@bitmark.com>
+Build-Depends: debhelper (>=9),
+               dh-systemd,
+               autoconf, automake, libtool, pkgconf,
+               golang [!powerpc],
+               gccgo [powerpc]
+Standards-Version: 3.9.6
+Homepage: https://bitmark.com
+#Vcs-Git: git://anonscm.debian.org/server-control/server-control.git
+#Vcs-Browser: http://anonscm.debian.org/cgit/server-control/server-control.git
+
+Package: bitmark-wallet
+Architecture: linux-any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Recommends:
+Description: A HD wallet which is used to pay transfer fee in bitmark.

@@ -1,0 +1,39 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+GOPATH = ${CURDIR}
+BIN_DIR = ${GOPATH}/bin
+PROJECT_DIR = ${GOPATH}/src/github.com/bitmark-inc/bitmark-wallet
+COMMAND_DIR = ${PROJECT_DIR}/command
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	# install app binary and configuration files
+	etc_dir="debian/tmp/etc" ; \
+	bin_dir="debian/tmp/bin" ; \
+	share_dir="debian/tmp/share" ; \
+	mkdir -p "$${etc_dir}" "$${bin_dir}" "$${share_dir}" ; \
+	for app in "${COMMAND_DIR}"/* ; \
+	do \
+	  app_base=$$(basename "$${app}") ; \
+	  conf="${SRC_DIR}/$${app}/$${app_base}.conf.sample" ; \
+	  [ -f "$${conf}" ] && cp -p "$${conf}" "$${etc_dir}/$${app_base}.conf" || true ; \
+	done ; \
+	cp -p "${BIN_DIR}"/* "$${bin_dir}/"
+
+override_dh_strip:
+	# Go has lots of problems with stripping
+
+override_dh_auto_test:
+	# no tests
+
+override_dh_installinit:
+	#dh_installinit --name=docker --no-restart-on-upgrade
+
+override_dh_auto_clean:
+	dh_auto_clean
+
+# default rules
+%:
+	dh $@ --with=systemd

@@ -1,0 +1,11 @@
+bitmark-wallet (0.2-1) unstable; urgency=medium
+
+  * fix a bug for not enough of coins after the tx fee is added
+
+ -- Jim Yeh <jim@bitmark.com>  Thu, 27 Jul 2017 18:53:36 +0000
+
+bitmark-wallet (0.1-1) unstable; urgency=medium
+
+  * Initial project
+
+ -- Jim Yeh <jim@bitmark.com>  Mon, 24 Jul 2017 14:53:36 +0000
