@@ -274,13 +274,9 @@ func (c CoinAccount) GenCoins(amount uint64) (tx.UTXOs, uint64, error) {
 					total += u.Value
 				}
 			}
-			if total >= amount {
-				return coins, total, nil
-			}
 		}
 	}
-
-	return nil, total, ErrNotEnoughCoin
+	return coins, total, nil
 }
 
 func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (string, error) {
