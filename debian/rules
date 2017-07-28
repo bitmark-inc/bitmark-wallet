@@ -4,9 +4,11 @@
 GOPATH = ${CURDIR}
 BIN_DIR = ${GOPATH}/bin
 PROJECT_DIR = ${GOPATH}/src/github.com/bitmark-inc/bitmark-wallet
-COMMAND_DIR = ${PROJECT_DIR}/command
 
 override_dh_auto_build:
+	cd "${PROJECT_DIR}" && \
+	  export GOPATH="${GOPATH}" && \
+	  go install -buildmode=exe -v ./command/...
 
 override_dh_auto_install:
 	# install app binary and configuration files
@@ -14,13 +16,9 @@ override_dh_auto_install:
 	bin_dir="debian/tmp/bin" ; \
 	share_dir="debian/tmp/share" ; \
 	mkdir -p "$${etc_dir}" "$${bin_dir}" "$${share_dir}" ; \
-	for app in "${COMMAND_DIR}"/* ; \
-	do \
-	  app_base=$$(basename "$${app}") ; \
-	  conf="${SRC_DIR}/$${app}/$${app_base}.conf.sample" ; \
-	  [ -f "$${conf}" ] && cp -p "$${conf}" "$${etc_dir}/$${app_base}.conf" || true ; \
-	done ; \
-	cp -p "${BIN_DIR}"/* "$${bin_dir}/"
+	conf="${PROJECT_DIR}/command/bitmark-wallet/wallet.conf.sample" ; \
+	[ -f "$${conf}" ] && cp -p "$${conf}" "$${etc_dir}/bitmark-wallet.conf" || true ; \
+	cp -p "${BIN_DIR}"/bitmark-wallet "$${bin_dir}/"
 
 override_dh_strip:
 	# Go has lots of problems with stripping

@@ -55,3 +55,72 @@
 [submodule "command/bitmark-wallet/vendor/golang.org/x/sys"]
 	path = command/bitmark-wallet/vendor/golang.org/x/sys
 	url = https://go.googlesource.com/sys
+[submodule "command/bitmark-wallet/vendor/golang.org/x/tools"]
+	path = command/bitmark-wallet/vendor/golang.org/x/tools
+	url = https://go.googlesource.com/tools
+[submodule "command/bitmark-wallet/vendor/github.com/cpuguy83/go-md2man"]
+	path = command/bitmark-wallet/vendor/github.com/cpuguy83/go-md2man
+	url = https://github.com/cpuguy83/go-md2man
+[submodule "command/bitmark-wallet/vendor/github.com/mitchellh/go-homedir"]
+	path = command/bitmark-wallet/vendor/github.com/mitchellh/go-homedir
+	url = https://github.com/mitchellh/go-homedir
+[submodule "command/bitmark-wallet/vendor/github.com/pkg/sftp"]
+	path = command/bitmark-wallet/vendor/github.com/pkg/sftp
+	url = https://github.com/pkg/sftp
+[submodule "command/bitmark-wallet/vendor/github.com/bitmark-inc/bitmarkd"]
+	path = command/bitmark-wallet/vendor/github.com/bitmark-inc/bitmarkd
+	url = https://github.com/bitmark-inc/bitmarkd
+[submodule "command/bitmark-wallet/vendor/github.com/xordataexchange/crypt"]
+	path = command/bitmark-wallet/vendor/github.com/xordataexchange/crypt
+	url = https://github.com/xordataexchange/crypt
+[submodule "vendor/github.com/bitgoin/tx"]
+	path = vendor/github.com/bitgoin/tx
+	url = https://github.com/bitgoin/tx
+[submodule "vendor/github.com/bitgoin/address"]
+	path = vendor/github.com/bitgoin/address
+	url = https://github.com/bitgoin/address
+[submodule "command/bitmark-wallet/vendor/github.com/BurntSushi/toml"]
+	path = command/bitmark-wallet/vendor/github.com/BurntSushi/toml
+	url = https://github.com/BurntSushi/toml
+[submodule "command/bitmark-wallet/vendor/github.com/pborman/uuid"]
+	path = command/bitmark-wallet/vendor/github.com/pborman/uuid
+	url = https://github.com/pborman/uuid
+[submodule "command/bitmark-wallet/vendor/github.com/coreos/etcd"]
+	path = command/bitmark-wallet/vendor/github.com/coreos/etcd
+	url = https://github.com/coreos/etcd
+[submodule "vendor/golang.org/x/net"]
+	path = vendor/golang.org/x/net
+	url = https://go.googlesource.com/net
+[submodule "vendor/github.com/pkg/errors"]
+	path = vendor/github.com/pkg/errors
+	url = https://github.com/pkg/errors
+[submodule "vendor/github.com/kr/fs"]
+	path = vendor/github.com/kr/fs
+	url = https://github.com/kr/fs
+[submodule "vendor/github.com/coreos/etcd"]
+	path = vendor/github.com/coreos/etcd
+	url = https://github.com/coreos/etcd
+[submodule "vendor/github.com/armon/consul-api"]
+	path = vendor/github.com/armon/consul-api
+	url = https://github.com/armon/consul-api
+[submodule "vendor/github.com/coreos/go-semver"]
+	path = vendor/github.com/coreos/go-semver
+	url = https://github.com/coreos/go-semver
+[submodule "vendor/github.com/ugorji/go"]
+	path = vendor/github.com/ugorji/go
+	url = https://github.com/ugorji/go
+[submodule "vendor/github.com/xordataexchange/crypt"]
+	path = vendor/github.com/xordataexchange/crypt
+	url = https://github.com/xordataexchange/crypt
+[submodule "vendor/github.com/pkg/sftp"]
+	path = vendor/github.com/pkg/sftp
+	url = https://github.com/pkg/sftp
+[submodule "vendor/github.com/mitchellh/go-homedir"]
+	path = vendor/github.com/mitchellh/go-homedir
+	url = https://github.com/mitchellh/go-homedir
+[submodule "vendor/github.com/cpuguy83/go-md2man"]
+	path = vendor/github.com/cpuguy83/go-md2man
+	url = https://github.com/cpuguy83/go-md2man
+[submodule "vendor/golang.org/x/tools"]
+	path = vendor/golang.org/x/tools
+	url = https://go.googlesource.com/tools
