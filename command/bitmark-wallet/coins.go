@@ -4,10 +4,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"path"
-	"strconv"
-	"strings"
-
 	"github.com/bitgoin/tx"
 	"github.com/bitmark-inc/bitmark-wallet"
 	"github.com/bitmark-inc/bitmark-wallet/agent"
@@ -15,7 +11,10 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"os"
+	"path"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
 var w *wallet.Wallet
@@ -231,6 +230,9 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 			sends := []*tx.Send{}
 			for _, s := range args {
 				sendStrings := strings.Split(s, ",")
+				if 2 != len(sendStrings) {
+					returnIfErr(fmt.Errorf("argument must be 'address,satoshis'"))
+				}
 				addr := sendStrings[0]
 				amount, err := strconv.ParseUint(sendStrings[1], 10, 64)
 				if err != nil {

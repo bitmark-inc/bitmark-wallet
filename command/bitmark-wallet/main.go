@@ -7,17 +7,17 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"io"
-	"log"
-	"os"
-	"time"
-
 	"github.com/NebulousLabs/entropy-mnemonics"
 	"github.com/bitmark-inc/bitmark-wallet"
 	"github.com/boltdb/bolt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"io"
+	"log"
+	"os"
 	"path"
+	"path/filepath"
+	"time"
 )
 
 var cfgFile string
@@ -135,6 +135,20 @@ func init() {
 			fmt.Println("Can't read config:", err)
 			os.Exit(1)
 		}
+
+		datadir := viper.GetString("datadir")
+		switch datadir {
+		case "", ".":
+			c, err := filepath.Abs(filepath.Clean(cfgFile))
+			if nil != err {
+				log.Fatal(err)
+			}
+			datadir, _ = filepath.Split(c)
+
+		default:
+		}
+
+		viper.Set("datadir", datadir)
 	})
 
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "conf", "C", "wallet.conf", "Path to config file")

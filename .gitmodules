@@ -1,11 +1,8 @@
 [submodule "command/bitmark-wallet/vendor/github.com/NebulousLabs/entropy-mnemonics"]
 	path = command/bitmark-wallet/vendor/github.com/NebulousLabs/entropy-mnemonics
 	url = https://github.com/NebulousLabs/entropy-mnemonics
-[submodule "command/bitmark-wallet/vendor/github.com/bitgoin/tx"]
-	path = command/bitmark-wallet/vendor/github.com/bitgoin/tx
-	url = https://github.com/bitgoin/tx
-[submodule "command/bitmark-wallet/vendor/github.com/boltdb/bolt"]
-	path = command/bitmark-wallet/vendor/github.com/boltdb/bolt
+[submodule "vendor/github.com/boltdb/bolt"]
+	path = vendor/github.com/boltdb/bolt
 	url = https://github.com/boltdb/bolt
 [submodule "command/bitmark-wallet/vendor/github.com/spf13/cobra"]
 	path = command/bitmark-wallet/vendor/github.com/spf13/cobra
@@ -124,3 +121,9 @@
 [submodule "vendor/golang.org/x/tools"]
 	path = vendor/golang.org/x/tools
 	url = https://go.googlesource.com/tools
+[submodule "vendor/github.com/bitgoin/packer"]
+	path = vendor/github.com/bitgoin/packer
+	url = https://github.com/bitgoin/packer
+[submodule "vendor/github.com/btcsuite/fastsha256"]
+	path = vendor/github.com/btcsuite/fastsha256
+	url = https://github.com/btcsuite/fastsha256
