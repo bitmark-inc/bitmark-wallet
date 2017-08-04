@@ -285,7 +285,7 @@ func (c CoinAccount) GenCoins(amount uint64) (tx.UTXOs, uint64, error) {
 	return coins, total, nil
 }
 
-func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (string, error) {
+func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (string, string, error) {
 	feePerKB := c.feePerKB
 	if fee != 0 {
 		feePerKB = fee
@@ -293,7 +293,7 @@ func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (stri
 	// Generate the change address in advance.
 	changeAddr, err := c.NewChangeAddr()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	sends = append(sends, &tx.Send{
@@ -310,22 +310,23 @@ func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (stri
 	// sending amount
 	coins, _, err := c.GenCoins(amounts)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	ntx, err := c.prepareTx(coins, customData, sends, feePerKB)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	b, err := ntx.Pack()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	txId, err := c.agent.Send(hex.EncodeToString(b))
+	rawTx := hex.EncodeToString(b)
+	txId, err := c.agent.Send(rawTx)
 	if err != nil {
-		fmt.Println("request tx:", hex.EncodeToString(b))
+		fmt.Println("request tx:", rawTx)
 	}
-	return txId, err
+	return txId, rawTx, err
 }

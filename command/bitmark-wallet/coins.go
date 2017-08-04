@@ -222,9 +222,9 @@ func NewCoinCmd(coinType, short, long string, ct wallet.CoinType) *cobra.Command
 			err = coinAccount.Discover()
 			returnIfErr(err)
 
-			txId, err := coinAccount.Send([]*tx.Send{{address, amount}}, customData, fee)
+			txId, rawTx, err := coinAccount.Send([]*tx.Send{{address, amount}}, customData, fee)
 			returnIfErr(err)
-			fmt.Println(txId)
+			fmt.Printf(`{"txId": "%s", "rawTx": "%s"}`, txId, rawTx)
 		},
 	}
 	sendCmd.Flags().StringVarP(&hexData, "hex-data", "H", "", "set hex bytes in the OP_RETURN")
@@ -267,9 +267,9 @@ func NewCoinCmd(coinType, short, long string, ct wallet.CoinType) *cobra.Command
 			err = coinAccount.Discover()
 			returnIfErr(err)
 
-			txId, err := coinAccount.Send(sends, customData, fee)
+			txId, rawTx, err := coinAccount.Send(sends, customData, fee)
 			returnIfErr(err)
-			fmt.Println(txId)
+			fmt.Printf(`{"txId": "%s", "rawTx": "%s"}`, txId, rawTx)
 		},
 	}
 	sendManyCmd.Flags().StringVarP(&hexData, "hex-data", "H", "", "set hex bytes in the OP_RETURN")
