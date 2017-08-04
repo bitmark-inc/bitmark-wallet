@@ -190,6 +190,7 @@ func (c CoinAccount) Discover() error {
 			return err
 		}
 		var gap, j uint32
+		var _lastIndex uint64
 		for gap < AddressGap {
 			k, err := changeKey.Child(j)
 			if err != nil {
@@ -209,9 +210,8 @@ func (c CoinAccount) Discover() error {
 				gap += 1
 			case nil, agent.ErrNoUnspentTx:
 				gap = 0
-				if i == 0 { // that means external address
-					lastIndex += 1
-				}
+				// Update the _lastIndex if there are transactions found
+				_lastIndex = uint64(j)
 			default:
 				return err
 			}
@@ -221,6 +221,10 @@ func (c CoinAccount) Discover() error {
 				return err
 			}
 			j += 1
+		}
+		// make sure the last index is largest number between external and internal
+		if _lastIndex > lastIndex {
+			lastIndex = _lastIndex
 		}
 	}
 	return c.store.SetLastIndex(lastIndex)
