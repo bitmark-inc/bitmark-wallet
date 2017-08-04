@@ -168,7 +168,7 @@ func (c CoinAccount) NewExternalAddr() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return c.Address(uint32(lastIndex), false)
+	return c.Address(uint32(lastIndex)+1, false)
 }
 
 // Address returns a coin address
