@@ -8,6 +8,11 @@ import (
 )
 
 func readMnemonic() (string, error) {
+	phrases := os.Getenv("WALLET_SEED_PHRASES")
+	if phrases != "" {
+		return phrases, nil
+	}
+
 	oldState, err := terminal.MakeRaw(0)
 	if err != nil {
 		return "", err
@@ -25,10 +30,9 @@ func readMnemonic() (string, error) {
 }
 
 func readPassword(prompt string, passLen int) (string, error) {
-
 	password := os.Getenv("WALLET_PASSWORD")
 	if password != "" {
-		if len(password) > passLen {
+		if len(password) >= passLen {
 			return password, nil
 		} else {
 			fmt.Println("Invalid environment: WALLET_PASSWORD")

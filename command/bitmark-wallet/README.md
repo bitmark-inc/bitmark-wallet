@@ -11,6 +11,14 @@ $ go install github.com/bitmark-inc/bitmark-wallet/command/bitmark-wallet
 
 ## Usage
 
+### Environment Variables
+
+For preventing from prompt password at each command, there are two environmnet variables
+which will be read if it is set
+
+- `WALLET_PASSWORD` - the password use for each command
+- `WALLET_SEED_PHRASES` - the recovery phrases
+
 ### Configuration
 
 Copy and update the file `wallet.config.sample`.
@@ -47,7 +55,6 @@ Balance:  67603099
 
 $ bitmark-wallet ltc -t -N localhost:17001 -U btcuser -P password send 'mnw1RtVwS5CRzbwV4rMxTiUqGec2DuK43n' '20000' -H 'efc02c2af662db5dcc900701fc1d77047e8432d8feabe0db949fa0967525db770a0850567d4e322e691b825632cd653d'
 Input wallet password:
-Fee:  28400
-Raw Transaction:  5b35f3d330dbad503f2b26313b6ac0dceb7907186303ba7c7d3ab845c598e0e6
+5b35f3d330dbad503f2b26313b6ac0dceb7907186303ba7c7d3ab845c598e0e6
 
 ```
