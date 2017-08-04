@@ -236,8 +236,10 @@ func (c CoinAccount) GetBalance() (uint64, error) {
 		return 0, err
 	}
 	var balance uint64
-	for _, txos := range utxos {
+	for addr, txos := range utxos {
+		fmt.Printf("Addr: %s\n", addr)
 		for _, txo := range txos {
+			fmt.Printf("      %s:%d\n", hex.EncodeToString(txo.TxHash), txo.Value)
 			balance += txo.Value
 		}
 	}
