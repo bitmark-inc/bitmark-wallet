@@ -3,9 +3,18 @@ datadir = "."
 walletdb = "wallet.dat"
 
 agent {
-  type = "daemon"
-  node = "localhost:17001"
-  user = "rpcuser"
-  pass = "password"
+  btc {
+    type = "daemon"
+    node = "localhost:17001"
+    user = "btcuser1"
+    pass = "pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw"
+  }
+
+  ltc {
+    type = "daemon"
+    node = "localhost:17003"
+    user = "btcuser1"
+    pass = "pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw"
+  }
 }
 

@@ -45,25 +45,40 @@ func (a *AgentData) ParseFlag(flag *pflag.FlagSet) {
 	}
 }
 
-var agentData AgentData
-
-func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
+func NewCoinCmd(coinType, short, long string, ct wallet.CoinType) *cobra.Command {
+	var agentData AgentData
 	cobra.OnInitialize(func() {
 		switch v := viper.Get("agent").(type) {
 		case []map[string]interface{}:
-			if len(v) > 0 {
-				agentMap := v[0]
-				t, _ := agentMap["type"].(string)
-				n, _ := agentMap["node"].(string)
-				u, _ := agentMap["user"].(string)
-				p, _ := agentMap["pass"].(string)
+			if len(v) == 0 {
+				break
+			}
 
-				agentData = AgentData{
-					Type: t,
-					Node: n,
-					User: u,
-					Pass: p,
-				}
+			vv, ok := v[0][coinType]
+			if !ok {
+				break
+			}
+
+			s := reflect.ValueOf(vv)
+			if s.Kind() != reflect.Slice {
+				break
+			}
+
+			agentMap, ok := s.Index(0).Interface().(map[string]interface{})
+			if !ok {
+				break
+			}
+
+			t, _ := agentMap["type"].(string)
+			n, _ := agentMap["node"].(string)
+			u, _ := agentMap["user"].(string)
+			p, _ := agentMap["pass"].(string)
+
+			agentData = AgentData{
+				Type: t,
+				Node: n,
+				User: u,
+				Pass: p,
 			}
 		case map[string]interface{}:
 			err := viper.UnmarshalKey("agent", &agentData)
@@ -77,7 +92,7 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 	})
 
 	var cmd = &cobra.Command{
-		Use:   use,
+		Use:   coinType,
 		Short: short,
 		Long:  long,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -87,7 +102,7 @@ func NewCoinCmd(use, short, long string, ct wallet.CoinType) *cobra.Command {
 			if len(args) > 0 && args[0] == "help" {
 				return
 			}
-			if cmd.Use == use {
+			if cmd.Use == coinType {
 				return
 			}
 
