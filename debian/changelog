@@ -1,3 +1,11 @@
+bitmark-wallet (0.3-1) unstable; urgency=medium
+
+  * fix coin listing bug
+  * change the return value of send function to JSON
+  * separate agent config for different types of coin
+
+ -- Jim Yeh <jim@bitmark.com>  Mon, 07 Aug 2017 09:53:36 +0000
+
 bitmark-wallet (0.2-1) unstable; urgency=medium
 
   * fix a bug for not enough of coins after the tx fee is added
