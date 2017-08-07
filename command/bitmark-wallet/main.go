@@ -20,6 +20,10 @@ import (
 	"time"
 )
 
+// set by the linker: go build -ldflags "-X main.version=M.N" ./...
+var version string = "0.0" // do not change this value
+
+// default config filename
 var cfgFile string
 
 var (
@@ -157,6 +161,15 @@ func init() {
 
 	viper.BindPFlag("datadir", rootCmd.PersistentFlags().Lookup("datadir"))
 	viper.BindPFlag("walletdb", rootCmd.PersistentFlags().Lookup("walletdb"))
+
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "version",
+		Short: "version of the program",
+		Long:  `version of the program`,
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println(version)
+		},
+	})
 
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "init",
