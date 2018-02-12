@@ -16,6 +16,8 @@ var (
 	ErrImportAddress = fmt.Errorf("fail to import address")
 )
 
+var watchedAddressList []ReceivedAddress
+
 type RPCParam struct {
 	Method string        `json:"method"`
 	Params []interface{} `json:"params"`
@@ -33,7 +35,9 @@ type RPCUTXO struct {
 }
 
 type ReceivedAddress struct {
-	Address string `json:"address"`
+	Address string   `json:"address"`
+	Amount  float64  `json:"amount"`
+	TxIds   []string `json:"txids"`
 }
 
 type RPCResponse struct {
@@ -78,10 +82,27 @@ func (da DaemonAgent) jsonRPC(p RPCParam) (*RPCResponse, error) {
 	return v, nil
 }
 
+func (da DaemonAgent) getAllWatchedAddress(refresh bool) error {
+	if watchedAddressList != nil && refresh != true {
+		return nil
+	}
+
+	p := RPCParam{
+		Method: "listreceivedbyaddress",
+		Params: []interface{}{0, true, true},
+	}
+	v, err := da.jsonRPC(p)
+	err = json.Unmarshal(v.Result, &watchedAddressList)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
 func (da DaemonAgent) importAddress(addr string) error {
 	p := RPCParam{
 		Method: "importaddress",
-		Params: []interface{}{addr, "", false},
+		Params: []interface{}{addr, "bitmark-wallet watched", false},
 	}
 	_, err := da.jsonRPC(p)
 	return err
@@ -121,24 +142,12 @@ func (da DaemonAgent) listUnspent(addr string) (tx.UTXOs, error) {
 }
 
 func (da DaemonAgent) isAddressUsed(address string) (bool, error) {
-	p := RPCParam{
-		Method: "listreceivedbyaddress",
-		Params: []interface{}{1, false, true},
+	if len(watchedAddressList) == 0 {
+		return false, nil
 	}
 
-	v, err := da.jsonRPC(p)
-	if err != nil {
-		return false, err
-	}
-
-	var received []ReceivedAddress
-	err = json.Unmarshal(v.Result, &received)
-	if err != nil {
-		return false, err
-	}
-
-	for _, r := range received {
-		if r.Address == address {
+	for _, r := range watchedAddressList {
+		if r.Address == address && len(r.TxIds) > 0 {
 			return true, nil
 		}
 	}
@@ -166,12 +175,31 @@ func (da DaemonAgent) Send(rawTx string) (string, error) {
 }
 
 func (da DaemonAgent) GetAddrUnspent(addr string) ([]*tx.UTXO, error) {
-	err := da.importAddress(addr)
+	err := da.getAllWatchedAddress(false)
 	if err != nil {
-		return nil, fmt.Errorf("fail to import address: %s", err.Error())
+		return nil, fmt.Errorf("fail to update watched address: %s", err.Error())
+	}
+
+	addresses := map[string]bool{}
+	for _, addr := range watchedAddressList {
+		addresses[addr.Address] = true
+	}
+
+	if _, ok := addresses[addr]; !ok {
+		err := da.importAddress(addr)
+		if err != nil {
+			return nil, fmt.Errorf("fail to import address: %s", err.Error())
+		}
+		err = da.getAllWatchedAddress(true)
+		if err != nil {
+			return nil, fmt.Errorf("fail to update watched address after import: %s", err.Error())
+		}
 	}
 
 	utxos, err := da.listUnspent(addr)
+	if err != nil {
+		return nil, fmt.Errorf("fail to list all utxos from address: %s", err.Error())
+	}
 	if len(utxos) > 0 {
 		return utxos, nil
 	}
@@ -193,7 +221,7 @@ func NewDaemonAgent(apiUrl, username, password string) *DaemonAgent {
 		TLSHandshakeTimeout: 5 * time.Second,
 	}
 	var c = &http.Client{
-		Timeout:   time.Second * 10,
+		Timeout:   time.Second * 60,
 		Transport: t,
 	}
 

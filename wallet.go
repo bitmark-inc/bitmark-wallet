@@ -12,7 +12,7 @@ import (
 // Follow the rule of account discovery in BIP44
 // https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#account-discovery
 const (
-	AddressGap = 20
+	AddressGap = 5
 )
 
 var (
@@ -184,7 +184,7 @@ func (c CoinAccount) Address(i uint32, change bool) (string, error) {
 func (c CoinAccount) Discover() error {
 	// m / 44' / coin' / account' / external
 	var lastIndex uint64
-	for i := uint32(0); i < 2; i++ {
+	for i := uint32(0); i < 2; i++ { // i = 0 external, i = 1 internal (change)
 		changeKey, err := c.Key.Child(i)
 		if err != nil {
 			return err
