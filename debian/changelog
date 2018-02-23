@@ -2,7 +2,7 @@ bitmark-wallet (0.4-1) unstable; urgency=medium
 
   * improve the performance when syncing the balance
 
--- Jim Yeh <jim@bitmark.com>  Mon, 12 Feb 2018 09:53:36 +0000
+ -- Jim Yeh <jim@bitmark.com>  Mon, 12 Feb 2018 09:53:36 +0000
 
 bitmark-wallet (0.3-1) unstable; urgency=medium
 
