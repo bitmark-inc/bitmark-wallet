@@ -3,8 +3,9 @@ package wallet_test
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/bitmark-inc/bitmark-wallet"
 	"log"
+
+	"github.com/bitmark-inc/bitmark-wallet"
 )
 
 func Example_newWallet() {

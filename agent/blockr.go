@@ -9,8 +9,9 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/bitgoin/tx"
 	"net/url"
+
+	"github.com/bitgoin/tx"
 )
 
 type BlockrUTXO struct {

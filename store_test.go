@@ -1,10 +1,11 @@
 package wallet
 
 import (
-	"github.com/bitgoin/tx"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/bitgoin/tx"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUnpackEmptyBuffer(t *testing.T) {

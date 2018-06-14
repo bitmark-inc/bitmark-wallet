@@ -6,6 +6,7 @@ import (
 
 	"github.com/bitgoin/address"
 	"github.com/bitgoin/tx"
+
 	"github.com/bitmark-inc/bitmark-wallet/agent"
 )
 

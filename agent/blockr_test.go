@@ -1,8 +1,9 @@
 package agent
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBlockrGetAddr(t *testing.T) {

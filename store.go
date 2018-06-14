@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/bitgoin/tx"
-	"github.com/bitmark-inc/bitmarkd/util"
 	"github.com/boltdb/bolt"
+
+	"github.com/bitmark-inc/bitmarkd/util"
 )
 
 var (

@@ -2,12 +2,13 @@ package wallet
 
 import (
 	"encoding/hex"
+	"os"
 	"testing"
 
 	"github.com/bitgoin/tx"
-	"github.com/bitmark-inc/bitmark-wallet/agent"
 	"github.com/stretchr/testify/assert"
-	"os"
+
+	"github.com/bitmark-inc/bitmark-wallet/agent"
 )
 
 const seedHex = "fded5e8970380eef15f742348d28511111366ae6a55188402b16c69922006fe6"

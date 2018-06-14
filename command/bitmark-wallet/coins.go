@@ -4,17 +4,19 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"github.com/bitgoin/tx"
-	"github.com/bitmark-inc/bitmark-wallet"
-	"github.com/bitmark-inc/bitmark-wallet/agent"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"os"
 	"path"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/bitgoin/tx"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+
+	"github.com/bitmark-inc/bitmark-wallet"
+	"github.com/bitmark-inc/bitmark-wallet/agent"
 )
 
 var w *wallet.Wallet

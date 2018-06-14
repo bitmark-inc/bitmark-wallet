@@ -7,17 +7,19 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/NebulousLabs/entropy-mnemonics"
-	"github.com/bitmark-inc/bitmark-wallet"
-	"github.com/boltdb/bolt"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"io"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"time"
+
+	mnemonics "github.com/NebulousLabs/entropy-mnemonics"
+	"github.com/boltdb/bolt"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
+	wallet "github.com/bitmark-inc/bitmark-wallet"
 )
 
 // set by the linker: go build -ldflags "-X main.version=M.N" ./...
