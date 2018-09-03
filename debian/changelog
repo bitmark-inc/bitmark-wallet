@@ -1,3 +1,9 @@
+bitmark-wallet (0.5-1) unstable; urgency=medium
+
+  * update dependencies
+
+ -- Christopher Hall <hsw@bitmark.com>  Mon, 03 Sep 2018 08:49:39 +0000
+
 bitmark-wallet (0.4-1) unstable; urgency=medium
 
   * improve the performance when syncing the balance
