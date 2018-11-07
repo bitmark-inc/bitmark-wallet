@@ -1,14 +1,13 @@
 package agent
 
 import (
+	"bytes"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"time"
-
-	"bytes"
-	"encoding/hex"
-	"encoding/json"
 
 	"github.com/bitgoin/tx"
 )
@@ -92,7 +91,12 @@ func (da DaemonAgent) getAllWatchedAddress(refresh bool) error {
 		Method: "listreceivedbyaddress",
 		Params: []interface{}{0, true, true},
 	}
+
 	v, err := da.jsonRPC(p)
+	if err != nil {
+		return err
+	}
+
 	err = json.Unmarshal(v.Result, &watchedAddressList)
 	if err != nil {
 		return err
