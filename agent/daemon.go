@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bitgoin/tx"
+	"github.com/bitmark-inc/bitmark-wallet/tx"
 )
 
 var (

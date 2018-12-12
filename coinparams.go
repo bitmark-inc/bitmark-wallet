@@ -51,7 +51,7 @@ var (
 	LitecoinTest = &address.Params{
 		DumpedPrivateKeyHeader: []byte{239},
 		AddressHeader:          []byte{111},
-		P2SHHeader:             []byte{196},
+		P2SHHeader:             []byte{58},
 		HDPrivateKeyID:         []byte{0x04, 0x35, 0x83, 0x94},
 		HDPublicKeyID:          []byte{0x04, 0x35, 0x87, 0xcf},
 	}

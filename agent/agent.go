@@ -3,7 +3,7 @@ package agent
 import (
 	"fmt"
 
-	"github.com/bitgoin/tx"
+	"github.com/bitmark-inc/bitmark-wallet/tx"
 )
 
 var (

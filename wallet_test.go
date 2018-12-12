@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bitgoin/tx"
+	"github.com/bitmark-inc/bitmark-wallet/tx"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/bitmark-inc/bitmark-wallet/agent"

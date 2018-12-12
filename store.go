@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bitgoin/tx"
+	"github.com/bitmark-inc/bitmark-wallet/tx"
 	"github.com/boltdb/bolt"
 
 	"github.com/bitmark-inc/bitmarkd/util"

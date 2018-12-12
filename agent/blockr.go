@@ -1,17 +1,16 @@
 package agent
 
 import (
-	"fmt"
-	"net"
-	"net/http"
-	"time"
-
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"net"
+	"net/http"
 	"net/url"
+	"time"
 
-	"github.com/bitgoin/tx"
+	"github.com/bitmark-inc/bitmark-wallet/tx"
 )
 
 type BlockrUTXO struct {

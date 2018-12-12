@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/bitgoin/address"
-	"github.com/bitgoin/tx"
 
 	"github.com/bitmark-inc/bitmark-wallet/agent"
+	"github.com/bitmark-inc/bitmark-wallet/tx"
 )
 
 // Follow the rule of account discovery in BIP44
@@ -287,6 +287,7 @@ func (c CoinAccount) GenCoins(amount uint64) (tx.UTXOs, uint64, error) {
 }
 
 func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (string, string, error) {
+
 	feePerKB := c.feePerKB
 	if fee != 0 {
 		feePerKB = fee
@@ -306,6 +307,7 @@ func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (stri
 
 	for _, s := range sends {
 		amounts += s.Amount
+
 	}
 	// Get UTXO recursively until the amount is greater than
 	// sending amount

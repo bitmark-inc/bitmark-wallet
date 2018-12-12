@@ -10,13 +10,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bitgoin/tx"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/bitmark-inc/bitmark-wallet"
 	"github.com/bitmark-inc/bitmark-wallet/agent"
+	"github.com/bitmark-inc/bitmark-wallet/tx"
 )
 
 var w *wallet.Wallet
@@ -50,25 +50,26 @@ func (a *AgentData) ParseFlag(flag *pflag.FlagSet) {
 func NewCoinCmd(coinType, short, long string, ct wallet.CoinType) *cobra.Command {
 	var agentData AgentData
 	cobra.OnInitialize(func() {
+	agent_switch:
 		switch v := viper.Get("agent").(type) {
 		case []map[string]interface{}:
 			if len(v) == 0 {
-				break
+				break agent_switch
 			}
 
 			vv, ok := v[0][coinType]
 			if !ok {
-				break
+				break agent_switch
 			}
 
 			s := reflect.ValueOf(vv)
 			if s.Kind() != reflect.Slice {
-				break
+				break agent_switch
 			}
 
 			agentMap, ok := s.Index(0).Interface().(map[string]interface{})
 			if !ok {
-				break
+				break agent_switch
 			}
 
 			t, _ := agentMap["type"].(string)
