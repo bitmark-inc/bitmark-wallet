@@ -34,6 +34,10 @@ type CoinAccount struct {
 	identifier string
 }
 
+func (c *CoinAccount) Close() {
+	c.store.Close()
+}
+
 func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends []*tx.Send, feePerKB uint64) (*tx.Tx, error) {
 	var opReturn *tx.TxOut
 	if customData != nil {
