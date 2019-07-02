@@ -2,7 +2,6 @@ package agent
 
 import (
 	"fmt"
-
 	"github.com/bitmark-inc/bitmark-wallet/tx"
 )
 
@@ -20,7 +19,8 @@ func (e ErrQueryFailure) Error() string {
 }
 
 type CoinAgent interface {
-	GetAddrUnspent(string) ([]*tx.UTXO, error)
+	ListAllUnspent() (map[string]tx.UTXOs, error)
+	WatchAddress(addr string) error
 	Send(string) (string, error)
 }
 

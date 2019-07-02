@@ -187,6 +187,8 @@ func (c CoinAccount) Address(i uint32, change bool) (string, error) {
 }
 
 func (c CoinAccount) Discover() error {
+	addresses := make([]string, 0)
+
 	// m / 44' / coin' / account' / external
 	var lastIndex uint64
 	for i := uint32(0); i < 2; i++ { // i = 0 external, i = 1 internal (change)
@@ -208,8 +210,7 @@ func (c CoinAccount) Discover() error {
 			}
 
 			addr := p.Address()
-			utxos, err := c.agent.GetAddrUnspent(addr)
-
+			err = c.agent.WatchAddress(addr)
 			switch err {
 			case agent.ErrNoTxForAddr:
 				gap += 1
@@ -221,10 +222,7 @@ func (c CoinAccount) Discover() error {
 				return err
 			}
 
-			err = c.store.SetUTXO(addr, utxos)
-			if err != nil {
-				return err
-			}
+			addresses = append(addresses, addr)
 			j += 1
 		}
 		// make sure the last index is largest number between external and internal
@@ -232,6 +230,21 @@ func (c CoinAccount) Discover() error {
 			lastIndex = _lastIndex
 		}
 	}
+
+	addrUTXOs, err := c.agent.ListAllUnspent()
+	if err != nil {
+		return err
+	}
+
+	for _, addr := range addresses {
+		if _, ok := addrUTXOs[addr]; ok {
+			err = c.store.SetUTXO(addr, addrUTXOs[addr])
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return c.store.SetLastIndex(lastIndex)
 }
 
