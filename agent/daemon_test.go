@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDaemonGetAddr(t *testing.T) {
+func TestDaemonWatchAddress(t *testing.T) {
 	d := NewDaemonAgent("http://localhost:17001/", "btcuser1",
 		"pjbgpsqvmmlmjlstkzhltwzrfgjrlsxfqzzfzshpmzstnhsdttltfmzxxkblzzcw")
 	err := d.WatchAddress("mvxpcRGnjRpme59CAnLHTxFjwd8ivwWbQb")

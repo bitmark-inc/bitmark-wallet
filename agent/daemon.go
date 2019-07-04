@@ -175,7 +175,7 @@ func (da DaemonAgent) WatchAddress(addr string) error {
 	} else if !used {
 		return ErrNoTxForAddr
 	}
-	return ErrNoUnspentTx
+	return nil
 }
 
 func (da DaemonAgent) ListAllUnspent() (map[string]tx.UTXOs, error) {

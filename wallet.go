@@ -214,7 +214,7 @@ func (c CoinAccount) Discover() error {
 			switch err {
 			case agent.ErrNoTxForAddr:
 				gap += 1
-			case nil, agent.ErrNoUnspentTx:
+			case nil:
 				gap = 0
 				// Update the _lastIndex if there are transactions found
 				_lastIndex = uint64(j)

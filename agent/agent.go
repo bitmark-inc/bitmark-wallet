@@ -7,7 +7,6 @@ import (
 
 var (
 	ErrNoTxForAddr = fmt.Errorf("no transaction for the address")
-	ErrNoUnspentTx = fmt.Errorf("no spentable transaction for the address")
 )
 
 type ErrQueryFailure struct {
