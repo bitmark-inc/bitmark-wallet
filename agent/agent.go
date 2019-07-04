@@ -2,13 +2,11 @@ package agent
 
 import (
 	"fmt"
-
 	"github.com/bitmark-inc/bitmark-wallet/tx"
 )
 
 var (
 	ErrNoTxForAddr = fmt.Errorf("no transaction for the address")
-	ErrNoUnspentTx = fmt.Errorf("no spentable transaction for the address")
 )
 
 type ErrQueryFailure struct {
@@ -20,7 +18,8 @@ func (e ErrQueryFailure) Error() string {
 }
 
 type CoinAgent interface {
-	GetAddrUnspent(string) ([]*tx.UTXO, error)
+	ListAllUnspent() (map[string]tx.UTXOs, error)
+	WatchAddress(addr string) error
 	Send(string) (string, error)
 }
 
