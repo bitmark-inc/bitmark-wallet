@@ -237,11 +237,12 @@ func (c CoinAccount) Discover() error {
 	}
 
 	for _, addr := range addresses {
-		if _, ok := addrUTXOs[addr]; ok {
-			err = c.store.SetUTXO(addr, addrUTXOs[addr])
-			if err != nil {
-				return err
-			}
+		// addrUTXOs[addr] might
+		// 1. contain utxos, and then the entry will be updated
+		// 2. NOT exist, and then the entry will be deleted
+		err = c.store.SetUTXO(addr, addrUTXOs[addr])
+		if err != nil {
+			return err
 		}
 	}
 
