@@ -1,3 +1,11 @@
+bitmark-wallet (0.6.3-1ubuntu2) bionic; urgency=medium
+
+  * Improve the wallet balance looking up algorithm
+  * Adjust litecoin transaction fee
+  * Remove blockr
+
+ -- Jim Yeh <jim@bitmark.com>  Wed, 27 Nov 2019 09:47:30 +0000
+
 bitmark-wallet (0.6.0-1) unstable; urgency=medium
 
   * remove vendor

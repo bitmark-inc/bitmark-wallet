@@ -1,14 +1,16 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-GOPATH = ${CURDIR}
+GOPATH = /tmp/go
+GOCACHE = /tmp/.go-cache
 BIN_DIR = ${GOPATH}/bin
-PROJECT_DIR = ${GOPATH}/src/github.com/bitmark-inc/bitmark-wallet
+PROJECT_DIR = ${CURDIR}
+
+VERSION := $(shell dpkg-parsechangelog -SVersion | sed 's/-[^-]*$$//')
 
 override_dh_auto_build:
-	cd "${PROJECT_DIR}" && \
-	  export GOPATH="${GOPATH}" && \
-	  go install -buildmode=exe -v ./command/...
+	[ -f "go.tar.gz" ] && tar zxf go.tar.gz -C /tmp
+	GOPATH="${GOPATH}" GOCACHE="${GOCACHE}" go install -buildmode=exe -ldflags "-X main.version=${VERSION}" ./command/...
 
 override_dh_auto_install:
 	# install app binary and configuration files
