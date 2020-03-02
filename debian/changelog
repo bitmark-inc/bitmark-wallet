@@ -1,3 +1,10 @@
+bitmark-wallet (0.6.4-1ubuntu1) bionic; urgency=medium
+
+  * update modules
+  * fix structure initialisation some []byte → single byte
+
+ -- Christopher Hall <hsw@bitmark.com>  Mon, 02 Mar 2020 06:14:34 +0000
+
 bitmark-wallet (0.6.3-1ubuntu2) bionic; urgency=medium
 
   * Improve the wallet balance looking up algorithm
