@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bitgoin/address"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/bitmark-inc/bitmark-wallet/agent"
 	"github.com/bitmark-inc/bitmark-wallet/tx"
@@ -217,6 +218,9 @@ func (c CoinAccount) Discover() error {
 			case nil:
 				gap = 0
 				// Update the _lastIndex if there are transactions found
+				if i == 0 {
+					log.WithField("address", addr).WithField("index", j).Debug("discover external transactions")
+				}
 				_lastIndex = uint64(j)
 			default:
 				return err
@@ -225,6 +229,7 @@ func (c CoinAccount) Discover() error {
 			addresses = append(addresses, addr)
 			j += 1
 		}
+		log.WithField("external", i == 0).WithField("lastIndex", _lastIndex).Debug("discovered last index")
 		// make sure the last index is largest number between external and internal
 		if _lastIndex > lastIndex {
 			lastIndex = _lastIndex
@@ -245,7 +250,7 @@ func (c CoinAccount) Discover() error {
 			return err
 		}
 	}
-
+	log.WithField("lastIndex", lastIndex).Debug("set last index")
 	return c.store.SetLastIndex(lastIndex)
 }
 
@@ -256,9 +261,12 @@ func (c CoinAccount) GetBalance() (uint64, error) {
 	}
 	var balance uint64
 	for addr, txos := range utxos {
-		fmt.Printf("Addr: %s\n", addr)
 		for _, txo := range txos {
-			fmt.Printf("      %s:%d\n", hex.EncodeToString(txo.TxHash), txo.Value)
+			log.
+				WithField("address", addr).
+				WithField("tx", hex.EncodeToString(txo.TxHash)).
+				WithField("amount", txo.Value).
+				Info("unspent fund")
 			balance += txo.Value
 		}
 	}

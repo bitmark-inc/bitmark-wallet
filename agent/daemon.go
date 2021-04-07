@@ -10,12 +10,14 @@ import (
 	"time"
 
 	"github.com/bitmark-inc/bitmark-wallet/tx"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
 	ErrImportAddress = fmt.Errorf("fail to import address")
 )
 
+var lastWatchedAddressesRefresh time.Time
 var watchedAddressList []ReceivedAddress
 
 type RPCParam struct {
@@ -83,8 +85,8 @@ func (da DaemonAgent) jsonRPC(p RPCParam) (*RPCResponse, error) {
 	return v, nil
 }
 
-func (da DaemonAgent) getAllWatchedAddress(refresh bool) error {
-	if watchedAddressList != nil && refresh != true {
+func (da DaemonAgent) getAllWatchedAddress() error {
+	if watchedAddressList != nil && time.Since(lastWatchedAddressesRefresh) < 15*time.Second {
 		return nil
 	}
 
@@ -102,6 +104,9 @@ func (da DaemonAgent) getAllWatchedAddress(refresh bool) error {
 	if err != nil {
 		return err
 	}
+
+	lastWatchedAddressesRefresh = time.Now()
+	log.WithField("timestamp", lastWatchedAddressesRefresh).Debug("refresh watched addresses")
 	return err
 }
 
@@ -148,7 +153,7 @@ func (da DaemonAgent) Send(rawTx string) (string, error) {
 }
 
 func (da DaemonAgent) WatchAddress(addr string) error {
-	err := da.getAllWatchedAddress(false)
+	err := da.getAllWatchedAddress()
 	if err != nil {
 		return fmt.Errorf("fail to update watched address: %s", err.Error())
 	}
@@ -163,7 +168,7 @@ func (da DaemonAgent) WatchAddress(addr string) error {
 		if err != nil {
 			return fmt.Errorf("fail to import address: %s", err.Error())
 		}
-		err = da.getAllWatchedAddress(true)
+		err = da.getAllWatchedAddress()
 		if err != nil {
 			return fmt.Errorf("fail to update watched address after import: %s", err.Error())
 		}
