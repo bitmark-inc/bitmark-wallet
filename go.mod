@@ -8,6 +8,8 @@ require (
 	github.com/bitgoin/packer v0.0.1
 	github.com/bitmark-inc/bitmarkd v0.12.4
 	github.com/boltdb/bolt v1.3.1
+	github.com/btcsuite/btcd v0.0.0-20190629003639-c26ffa870fd8
+	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
 	github.com/btcsuite/fastsha256 v0.0.0-20160815193821-637e65642941 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v0.0.6

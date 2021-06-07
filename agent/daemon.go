@@ -202,6 +202,10 @@ func (da DaemonAgent) ListAllUnspent() (map[string]tx.UTXOs, error) {
 	utxos := make(map[string]tx.UTXOs)
 
 	for _, u := range rutxo {
+		if u.Value == 0 {
+			continue
+		}
+
 		hash, err := hex.DecodeString(u.TxId)
 		if err != nil {
 			return nil, err

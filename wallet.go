@@ -1,10 +1,17 @@
 package wallet
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 
 	"github.com/bitgoin/address"
+	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcd/txscript"
+	"github.com/btcsuite/btcd/wire"
+	"github.com/btcsuite/btcutil"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/bitmark-inc/bitmark-wallet/agent"
@@ -39,40 +46,170 @@ func (c *CoinAccount) Close() {
 	c.store.Close()
 }
 
-func (c CoinAccount) prepareTx(coins tx.UTXOs, customData []byte, sends []*tx.Send, feePerKB uint64) (*tx.Tx, error) {
-	var opReturn *tx.TxOut
+// signTx adds signatureScripts for each vins
+func (c CoinAccount) signTx(utxos tx.UTXOs, redeemTx *wire.MsgTx) error {
+	for i := range redeemTx.TxIn {
+		utxo := utxos[i]
+
+		signatureScript, err := txscript.SignatureScript(redeemTx, i, utxo.Script, txscript.SigHashAll, (*btcec.PrivateKey)(utxo.Key.PrivateKey), true)
+		if err != nil {
+			return err
+		}
+
+		redeemTx.TxIn[i].SignatureScript = signatureScript
+	}
+
+	return nil
+}
+
+type UnspentFunds struct {
+	TxIn        []*wire.TxIn
+	TotalAmount uint64
+	UTXOs       tx.UTXOs
+}
+
+// prepareUnspentFunds returns the UnspentFunds which includes vins, total amounts and
+// signing information of each vins
+func (c CoinAccount) prepareUnspentFunds(amount uint64) (*UnspentFunds, error) {
+	utxos, total, err := c.collectUTXOs(amount)
+	if err != nil {
+		return nil, err
+	}
+
+	if total < amount {
+		return nil, fmt.Errorf("no enough money to spend")
+	}
+
+	txInputs := []*wire.TxIn{}
+	for _, u := range utxos {
+		utxoHash, err := chainhash.NewHash(u.TxHash)
+		if err != nil {
+			return nil, err
+		}
+
+		outPoint := wire.NewOutPoint(utxoHash, u.TxIndex)
+		txIn := wire.NewTxIn(outPoint, nil, nil)
+
+		txInputs = append(txInputs, txIn)
+	}
+
+	return &UnspentFunds{
+		TxIn:        txInputs,
+		TotalAmount: total,
+		UTXOs:       utxos,
+	}, nil
+}
+
+// prepareSpendTx creates a transaction by collecting enough vins,
+// adding vouts for destination and signing the transaction
+func (c CoinAccount) prepareSpendTx(customData []byte, sends []*tx.Send, changeAddr string, feePerKB uint64) (*wire.MsgTx, error) {
+	redeemTx := wire.NewMsgTx(wire.TxVersion)
+
+	var totalInputAmount, totalOutputAmount uint64
+
+	var initialAmount uint64
+	for _, s := range sends {
+		initialAmount += s.Amount
+	}
+
+	unspentFunds, err := c.prepareUnspentFunds(initialAmount)
+	if err != nil {
+		return nil, err
+	}
+	redeemTx.TxIn = unspentFunds.TxIn
+	totalInputAmount = unspentFunds.TotalAmount
+
+	// prepare change pkScript
+	decodedChangeAddr, err := btcutil.DecodeAddress(changeAddr, &chaincfg.TestNet3Params)
+	if err != nil {
+		return nil, err
+	}
+	changePKScript, err := txscript.PayToAddrScript(decodedChangeAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	totalVout := len(sends)
+
+	for _, s := range sends {
+		decodedAddr, err := btcutil.DecodeAddress(s.Addr, &chaincfg.TestNet3Params)
+		if err != nil {
+			return nil, err
+		}
+		destinationAddrByte, err := txscript.PayToAddrScript(decodedAddr)
+		if err != nil {
+			return nil, err
+		}
+
+		totalOutputAmount += s.Amount
+		redeemTxOut := wire.NewTxOut(int64(s.Amount), destinationAddrByte)
+		redeemTx.AddTxOut(redeemTxOut)
+	}
+
+	// add custome data as the last vout
 	if customData != nil {
-		opReturn = tx.CustomTx(customData)
+		builder := txscript.NewScriptBuilder()
+		script, err := builder.AddOp(txscript.OP_RETURN).AddData(customData).Script()
+		if err != nil {
+			return nil, err
+		}
+		totalVout += 1
+		redeemTx.AddTxOut(wire.NewTxOut(0, script))
 	}
 
-	fee := feePerKB
-	// Generate tx with a suitable fee. Use the feePerKB as the fee in the beginning
+	// add scriptSig into transaction for better fee estimation
+	if err := c.signTx(unspentFunds.UTXOs, redeemTx); err != nil {
+		return nil, err
+	}
+
+	txSize := 0
+	// fee estimation loop
 	for {
-		ntx, used, err := tx.NewP2PKunsign(fee, coins, 0, sends...)
-		if err != nil {
+		log.WithField("txSize", txSize).Info("compare tx size")
+		if redeemTx.SerializeSize() <= txSize {
+			break
+		}
+		txSize = redeemTx.SerializeSize()
+
+		feePerByte := int(feePerKB) / 1000
+
+		newFee := int64(txSize * feePerByte)
+		changeAmount := int64(totalInputAmount) - int64(totalOutputAmount) - newFee
+		log.WithField("fee", newFee).WithField("change", changeAmount).Info("estimate change value")
+		if changeAmount < 0 {
+			// changeAmount is less than zero which indicates that the fee is not enough
+			newInputAmount := totalInputAmount - uint64(changeAmount)
+			log.WithField("newInputAmount", newInputAmount).Info("not enough of transaction fee. need for input")
+
+			var err error
+			unspentFunds, err = c.prepareUnspentFunds(newInputAmount)
+			if err != nil {
+				return nil, err
+			}
+			redeemTx.TxIn = unspentFunds.TxIn
+			totalInputAmount = unspentFunds.TotalAmount
+
+			// reset the evaluated txSize
+			txSize = 0
+		} else if changeAmount > 35*int64(feePerByte) {
+			// add the change vout only when the change is greater than 35 * feePerByte
+			// this value is determined by the extra transaction sizes of an addition vout
+
+			if len(redeemTx.TxOut) == totalVout {
+				// add change vout as the first item
+				redeemTxOut := wire.NewTxOut(0, changePKScript)
+				fmt.Println(redeemTxOut.SerializeSize())
+				redeemTx.TxOut = append([]*wire.TxOut{redeemTxOut}, redeemTx.TxOut...)
+			}
+			redeemTx.TxOut[0].Value = changeAmount
+		}
+
+		if err := c.signTx(unspentFunds.UTXOs, redeemTx); err != nil {
 			return nil, err
-		}
-
-		if opReturn != nil {
-			ntx.TxOut = append(ntx.TxOut, opReturn)
-		}
-
-		if err = tx.FillP2PKsign(ntx, used); err != nil {
-			return nil, err
-		}
-
-		rawTx, err := ntx.Pack()
-		if err != nil {
-			return nil, err
-		}
-
-		newFee := uint64(len(rawTx)) * feePerKB / 1000
-		if newFee > fee {
-			fee = newFee
-		} else {
-			return ntx, nil
 		}
 	}
+
+	return redeemTx, nil
 }
 
 // String returns the identifier of an account.
@@ -273,8 +410,8 @@ func (c CoinAccount) GetBalance() (uint64, error) {
 	return balance, nil
 }
 
-// GenCoins will generate coins for sending in address order
-func (c CoinAccount) GenCoins(amount uint64) (tx.UTXOs, uint64, error) {
+// collectUTXOs will collect UTXOs to fulfill a given amount
+func (c CoinAccount) collectUTXOs(amount uint64) (tx.UTXOs, uint64, error) {
 	coins := make([]*tx.UTXO, 0)
 	var total uint64
 	utxos, err := c.store.GetAllUTXO()
@@ -287,6 +424,7 @@ func (c CoinAccount) GenCoins(amount uint64) (tx.UTXOs, uint64, error) {
 		return nil, 0, err
 	}
 	// Use changes first
+COLLECT_UTXOS:
 	for j := 1; j >= 0; j-- {
 		for i := uint32(0); i <= uint32(l); i++ {
 			p, err := c.addressKey(i, j == 1) // 0: external, 1: internal(changes)
@@ -305,6 +443,10 @@ func (c CoinAccount) GenCoins(amount uint64) (tx.UTXOs, uint64, error) {
 					u.Script = script
 					coins = append(coins, u)
 					total += u.Value
+
+					if total >= amount {
+						break COLLECT_UTXOS
+					}
 				}
 			}
 		}
@@ -313,7 +455,6 @@ func (c CoinAccount) GenCoins(amount uint64) (tx.UTXOs, uint64, error) {
 }
 
 func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (string, string, error) {
-
 	feePerKB := c.feePerKB
 	if fee != 0 {
 		feePerKB = fee
@@ -324,38 +465,21 @@ func (c CoinAccount) Send(sends []*tx.Send, customData []byte, fee uint64) (stri
 		return "", "", err
 	}
 
-	sends = append(sends, &tx.Send{
-		Addr:   changeAddr,
-		Amount: 0,
-	})
-
-	var amounts uint64
-
-	for _, s := range sends {
-		amounts += s.Amount
-
-	}
-	// Get UTXO recursively until the amount is greater than
-	// sending amount
-	coins, _, err := c.GenCoins(amounts)
+	redeemTx, err := c.prepareSpendTx(customData, sends, changeAddr, feePerKB)
 	if err != nil {
 		return "", "", err
 	}
 
-	ntx, err := c.prepareTx(coins, customData, sends, feePerKB)
-	if err != nil {
+	var signedTx bytes.Buffer
+	if err := redeemTx.Serialize(&signedTx); err != nil {
 		return "", "", err
 	}
-
-	b, err := ntx.Pack()
-	if err != nil {
-		return "", "", err
-	}
-
-	rawTx := hex.EncodeToString(b)
+	rawTx := hex.EncodeToString(signedTx.Bytes())
 	txId, err := c.agent.Send(rawTx)
 	if err != nil {
-		fmt.Println("request tx:", rawTx)
+		log.WithError(err).WithField("rawTx", rawTx).Error("unable to broadcast transaction")
+		return "", "", err
 	}
+
 	return txId, rawTx, err
 }
