@@ -16,5 +16,5 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.4.0
-	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d
+	golang.org/x/crypto v0.1.0
 )
